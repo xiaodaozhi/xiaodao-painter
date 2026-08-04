@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useToolsStore } from './stores/tools'
 import { useCanvasStore } from './stores/canvas'
 import type { ToolType } from './types'

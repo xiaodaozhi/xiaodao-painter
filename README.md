@@ -31,7 +31,7 @@ npm install
 ```vue
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import WhiteboardApp from './components/whiteboard/index.vue'
+import WhiteboardApp from './components/whiteboard/Home.vue'
 import type { WhiteboardData } from './components/whiteboard/types'
 
 const data = ref<WhiteboardData>({

@@ -65,24 +65,36 @@ function handleBlur() {
   clearModifiers();
 }
 
+let centerObserver: ResizeObserver | null = null;
+
+function centerCanvas() {
+  const el = wrapperRef.value?.parentElement;
+  if (!el) return;
+  const cw = canvasStore.canvasWidth * canvasStore.zoomLevel;
+  const ch = canvasStore.canvasHeight * canvasStore.zoomLevel;
+  const cw2 = el.clientWidth;
+  const ch2 = el.clientHeight;
+  if (cw2 > 0 && ch2 > 0) {
+    canvasStore.setPan((cw2 - cw) / 2, (ch2 - ch) / 2);
+  }
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
   window.addEventListener('keyup', handleKeyup);
   window.addEventListener('blur', handleBlur);
 
-  // 初始居中
+  centerCanvas();
+  centerObserver = new ResizeObserver(() => centerCanvas());
   const el = wrapperRef.value?.parentElement;
-  if (el) {
-    const cw = canvasStore.canvasWidth * canvasStore.zoomLevel;
-    const ch = canvasStore.canvasHeight * canvasStore.zoomLevel;
-    canvasStore.setPan((el.clientWidth - cw) / 2, (el.clientHeight - ch) / 2);
-  }
+  if (el) centerObserver.observe(el);
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
   window.removeEventListener('keyup', handleKeyup);
   window.removeEventListener('blur', handleBlur);
+  centerObserver?.disconnect();
 });
 </script>
 

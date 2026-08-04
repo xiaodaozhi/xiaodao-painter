@@ -30,6 +30,6 @@ export interface WhiteboardData {
 }
 
 export const DEFAULT_CANVAS_WIDTH = 800;
-export const DEFAULT_CANVAS_HEIGHT = 800;
+export const DEFAULT_CANVAS_HEIGHT = 600;
 export const STROKE_WIDTH = 3;
 export const HIT_THRESHOLD = 8;

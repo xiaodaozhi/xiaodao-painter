@@ -9,5 +9,9 @@ export const useToolsStore = defineStore('tools', () => {
     activeTool.value = tool;
   }
 
-  return { activeTool, setTool };
+  function reset() {
+    activeTool.value = 'select';
+  }
+
+  return { activeTool, setTool, reset };
 });

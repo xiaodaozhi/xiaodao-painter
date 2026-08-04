@@ -349,6 +349,34 @@ export const useCanvasStore = defineStore('canvas', () => {
     };
   }
 
+  function reset() {
+    strokes.value = [];
+    selectedStrokeIds.value = new Set();
+    foregroundColor.value = '#000000';
+    backgroundColor.value = 'transparent';
+    activeColorSlot.value = 'foreground';
+    showColorPalette.value = false;
+    strokeWidth.value = STROKE_WIDTH;
+    canvasBackgroundColor.value = '#ffffff';
+    theme.value = 'light';
+    dataVersion.value = 0;
+    canvasWidth.value = DEFAULT_CANVAS_WIDTH;
+    canvasHeight.value = DEFAULT_CANVAS_HEIGHT;
+    panX.value = 0;
+    panY.value = 0;
+    zoomLevel.value = 1;
+    showZoomIndicator.value = false;
+    if (zoomIndicatorTimer) {
+      clearTimeout(zoomIndicatorTimer);
+      zoomIndicatorTimer = null;
+    }
+    undoStack.value = [];
+    redoStack.value = [];
+    isSelecting.value = false;
+    selectionBox.value = null;
+    clipboard.value = [];
+  }
+
   return {
     strokes,
     selectedStrokeIds,
@@ -406,5 +434,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     getZoomPercent,
     dataVersion,
     theme,
+    reset,
   };
 });

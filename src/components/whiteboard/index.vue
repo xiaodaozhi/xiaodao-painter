@@ -3,6 +3,7 @@ import { computed, watch } from 'vue';
 import type { Locale } from './utils/i18n';
 import { provideLocale } from './composables/useI18n';
 import { useCanvasStore } from './stores/canvas';
+import { useToolsStore } from './stores/tools';
 import type { WhiteboardData } from './types';
 import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './types';
 import Toolbar from './Toolbar.vue';
@@ -47,6 +48,12 @@ const rootStyle = computed(() => {
 provideLocale(resolvedLocale.value);
 
 const canvasStore = useCanvasStore();
+const toolsStore = useToolsStore();
+
+// Reset all state on component initialization to ensure a clean slate
+canvasStore.reset();
+toolsStore.reset();
+
 let suppressing = false;
 
 watch(

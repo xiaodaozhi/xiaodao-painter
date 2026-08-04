@@ -4,6 +4,8 @@ A self-contained, embeddable SVG whiteboard component for Vue 3. Built with Type
 
 Supports drawing tools, selection, resize, pan/zoom, undo/redo, clipboard, layer ordering, color palettes, i18n, and light/dark themes — all with two-way data binding via `v-model`.
 
+![Preview](./img/preview.png)
+
 ## Features
 
 - **9 tools** — Select, Pan, Zoom, Pencil, Line, Circle, Rectangle, Triangle, Star

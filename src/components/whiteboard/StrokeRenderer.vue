@@ -2,7 +2,7 @@
 import type { Stroke } from './types';
 import { strokeToSvg } from './utils/svg';
 
-const props = defineProps<{
+defineProps<{
   stroke: Stroke;
   isSelected: boolean;
 }>();

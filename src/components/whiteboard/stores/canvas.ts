@@ -52,7 +52,10 @@ export const useCanvasStore = defineStore('canvas', () => {
     let nextZoom: number | null = null;
     for (const step of ZOOM_STEPS) {
       if (zoomingIn) {
-        if (step > cur + 0.001) { nextZoom = step; break; }
+        if (step > cur + 0.001) {
+          nextZoom = step;
+          break;
+        }
       } else {
         if (step < cur - 0.001) nextZoom = step;
       }
@@ -117,7 +120,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const selectedStrokeColor = computed<string | null>(() => {
     const sel = selectedStrokes.value;
     if (sel.length === 0) return null;
-    const first = sel[0].strokeColor;
+    const first = sel[0]!.strokeColor;
     return sel.every((s) => s.strokeColor === first) ? first : null;
   });
 
@@ -126,7 +129,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     const fills = selectedStrokes.value
       .filter((s) => s.type !== 'line' && s.type !== 'pencil');
     if (fills.length === 0) return null;
-    const first = fills[0].fillColor;
+    const first = fills[0]!.fillColor;
     return fills.every((s) => s.fillColor === first) ? first : null;
   });
 
@@ -164,7 +167,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   function updateStroke(id: string, changes: Partial<Stroke>) {
     const idx = strokes.value.findIndex((s) => s.id === id);
     if (idx !== -1) {
-      strokes.value[idx] = { ...strokes.value[idx], ...changes };
+      strokes.value[idx]! = { ...strokes.value[idx]!, ...changes };
     }
   }
 
@@ -245,7 +248,7 @@ export const useCanvasStore = defineStore('canvas', () => {
       .sort((a, b) => b - a);
     for (const idx of indices) {
       if (idx < strokes.value.length - 1) {
-        ;[strokes.value[idx], strokes.value[idx + 1]] = [strokes.value[idx + 1], strokes.value[idx]];
+        ;[strokes.value[idx]!, strokes.value[idx + 1]!] = [strokes.value[idx + 1]!, strokes.value[idx]!];
       }
     }
   }
@@ -260,7 +263,7 @@ export const useCanvasStore = defineStore('canvas', () => {
       .sort((a, b) => a - b);
     for (const idx of indices) {
       if (idx > 0) {
-        ;[strokes.value[idx], strokes.value[idx - 1]] = [strokes.value[idx - 1], strokes.value[idx]];
+        ;[strokes.value[idx]!, strokes.value[idx - 1]!] = [strokes.value[idx - 1]!, strokes.value[idx]!];
       }
     }
   }
@@ -272,7 +275,9 @@ export const useCanvasStore = defineStore('canvas', () => {
     if (!data || data.length === 0) return;
     syncing = true;
     strokes.value = [...data];
-    setTimeout(() => { syncing = false; }, 0);
+    setTimeout(() => {
+      syncing = false;
+    }, 0);
   }
 
   function getStrokeDisplayBounds(stroke: Stroke) {

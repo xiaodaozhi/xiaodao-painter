@@ -92,7 +92,9 @@ watch(
   () => {
     suppressing = true;
     emitUpdate();
-    setTimeout(() => { suppressing = false; }, 0);
+    setTimeout(() => {
+      suppressing = false;
+    }, 0);
   },
   { deep: true },
 );
@@ -109,7 +111,10 @@ watch(
 </script>
 
 <template>
-  <div :class="['wb-root', themeClass]" :style="rootStyle">
+  <div
+    :class="['wb-root', themeClass]"
+    :style="rootStyle"
+  >
     <Toolbar />
     <Whiteboard />
     <ColorPalette />

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
-import type { Locale } from './utils/i18n';
-import { provideLocale } from './composables/useI18n';
-import { useCanvasStore } from './stores/canvas';
-import { useToolsStore } from './stores/tools';
-import type { WhiteboardData } from './types';
-import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './types';
+import type { Locale } from './utils/i18n.ts';
+import { provideLocale } from './composables/useI18n.ts';
+import { useCanvasStore } from './stores/canvas.ts';
+import { useToolsStore } from './stores/tools.ts';
+import type { WhiteboardData } from './types/index.ts';
+import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './types/index.ts';
 import Toolbar from './Toolbar.vue';
 import Whiteboard from './Whiteboard.vue';
 import ColorPalette from './ColorPalette.vue';

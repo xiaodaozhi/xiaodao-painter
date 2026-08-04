@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import WhiteboardApp from './components/whiteboard/index.vue';
+import WhiteboardApp from './components/whiteboard/Home.vue';
 import type { WhiteboardData } from './components/whiteboard/types';
 import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './components/whiteboard/types';
 

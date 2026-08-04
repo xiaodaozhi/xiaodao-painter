@@ -1,0 +1,50 @@
+export type Locale = 'zh-CN' | 'en-US'
+
+const zhCN: Record<string, string> = {
+  'tool.select': '选择',
+  'tool.pencil': '铅笔',
+  'tool.line': '直线',
+  'tool.circle': '圆形',
+  'tool.rect': '矩形',
+  'tool.triangle': '三角形',
+  'tool.star': '五角星',
+  'color.foreground': '前景色（描边）',
+  'color.background': '背景色（填充）',
+  'palette.stroke': '描边颜色',
+  'palette.fill': '填充颜色',
+  'palette.custom': '自定义颜色',
+  'toolbar.undo': '撤销',
+  'toolbar.redo': '重做',
+  'toolbar.bringToFront': '上移图层',
+  'toolbar.sendToBack': '下移图层',
+  'toolbar.delete': '删除',
+}
+
+const enUS: Record<string, string> = {
+  'tool.select': 'Select',
+  'tool.pencil': 'Pencil',
+  'tool.line': 'Line',
+  'tool.circle': 'Circle',
+  'tool.rect': 'Rectangle',
+  'tool.triangle': 'Triangle',
+  'tool.star': 'Star',
+  'color.foreground': 'Stroke Color',
+  'color.background': 'Fill Color',
+  'palette.stroke': 'Stroke Color',
+  'palette.fill': 'Fill Color',
+  'palette.custom': 'Custom Color',
+  'toolbar.undo': 'Undo',
+  'toolbar.redo': 'Redo',
+  'toolbar.bringToFront': 'Bring to Front',
+  'toolbar.sendToBack': 'Send to Back',
+  'toolbar.delete': 'Delete',
+}
+
+const locales: Record<Locale, Record<string, string>> = {
+  'zh-CN': zhCN,
+  'en-US': enUS,
+}
+
+export function t(locale: Locale, key: string): string {
+  return locales[locale]?.[key] ?? key
+}

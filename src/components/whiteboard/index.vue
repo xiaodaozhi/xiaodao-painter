@@ -14,6 +14,8 @@ const props = withDefaults(defineProps<{
   theme?: 'light' | 'dark';
   locale?: string;
   modelValue?: WhiteboardData;
+  width?: string | number;
+  height?: string | number;
 }>(), {
   theme: 'light',
   locale: 'zh-CN',
@@ -22,6 +24,8 @@ const props = withDefaults(defineProps<{
     canvasWidth: DEFAULT_CANVAS_WIDTH,
     canvasHeight: DEFAULT_CANVAS_HEIGHT,
   }),
+  width: '100%',
+  height: '100%',
 });
 
 const emit = defineEmits<{
@@ -31,6 +35,14 @@ const emit = defineEmits<{
 const resolvedLocale = computed<Locale>(() =>
   props.locale === 'en-US' ? 'en-US' : 'zh-CN',
 );
+
+const rootStyle = computed(() => {
+  const toVal = (v: string | number) => typeof v === 'number' ? `${v}px` : v;
+  return {
+    width: toVal(props.width!),
+    height: toVal(props.height!),
+  };
+});
 
 provideLocale(resolvedLocale.value);
 
@@ -97,7 +109,7 @@ watch(
 </script>
 
 <template>
-  <div :class="['wb-root', themeClass]">
+  <div :class="['wb-root', themeClass]" :style="rootStyle">
     <Toolbar />
     <Whiteboard />
     <ColorPalette />

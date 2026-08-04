@@ -275,9 +275,9 @@ export const useCanvasStore = defineStore('canvas', () => {
 
   function syncFromParent(data: Stroke[]) {
     if (syncing) return;
-    if (!data || data.length === 0) return;
     syncing = true;
-    strokes.value = [...data];
+    strokes.value = Array.isArray(data) ? [...data] : [];
+    selectedStrokeIds.value = new Set();
     setTimeout(() => {
       syncing = false;
     }, 0);

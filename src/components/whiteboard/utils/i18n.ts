@@ -1,4 +1,4 @@
-export type Locale = 'zh-CN' | 'en-US'
+export type Locale = 'zh-CN' | 'en-US';
 
 const zhCN: Record<string, string> = {
   'tool.select': '选择',
@@ -28,7 +28,7 @@ const zhCN: Record<string, string> = {
   'canvasSize.cancel': '取消',
   'canvasSize.background': '背景',
   'canvasSize.transparent': '透明',
-}
+};
 
 const enUS: Record<string, string> = {
   'tool.select': 'Select',
@@ -58,13 +58,13 @@ const enUS: Record<string, string> = {
   'canvasSize.cancel': 'Cancel',
   'canvasSize.background': 'Background',
   'canvasSize.transparent': 'Transparent',
-}
+};
 
 const locales: Record<Locale, Record<string, string>> = {
   'zh-CN': zhCN,
   'en-US': enUS,
-}
+};
 
 export function t(locale: Locale, key: string): string {
-  return locales[locale]?.[key] ?? key
+  return locales[locale]?.[key] ?? key;
 }

@@ -1,40 +1,40 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Stroke } from './types'
-import { useCanvasStore } from './stores/canvas'
+import { computed } from 'vue';
+import type { Stroke } from './types';
+import { useCanvasStore } from './stores/canvas';
 
 const props = defineProps<{
-  stroke: Stroke
-  startResize: (strokeId: string, handle: string, cursor: string, event: MouseEvent) => void
-}>()
+  stroke: Stroke;
+  startResize: (strokeId: string, handle: string, cursor: string, event: MouseEvent) => void;
+}>();
 
-const canvasStore = useCanvasStore()
+const canvasStore = useCanvasStore();
 
-const pad = 6
-const handleSize = 8
+const pad = 6;
+const handleSize = 8;
 
 const box = computed(() => {
-  const b = canvasStore.getStrokeDisplayBounds(props.stroke)
+  const b = canvasStore.getStrokeDisplayBounds(props.stroke);
   return {
     x: b.x - pad,
     y: b.y - pad,
     w: b.width + pad * 2,
     h: b.height + pad * 2,
-  }
-})
+  };
+});
 
-const isLine = computed(() => props.stroke.type === 'line')
+const isLine = computed(() => props.stroke.type === 'line');
 
 const lineHandlePositions = computed(() => {
-  const s = props.stroke
+  const s = props.stroke;
   return [
     { name: 'line-start', cx: s.x, cy: s.y, cursor: 'move' },
     { name: 'line-end', cx: s.x + s.width, cy: s.y + s.height, cursor: 'move' },
-  ]
-})
+  ];
+});
 
 const nonLineHandlePositions = computed(() => {
-  const b = box.value
+  const b = box.value;
   return [
     { name: 'nw', cx: b.x, cy: b.y, cursor: 'nwse-resize' },
     { name: 'n',  cx: b.x + b.w / 2, cy: b.y, cursor: 'ns-resize' },
@@ -44,11 +44,11 @@ const nonLineHandlePositions = computed(() => {
     { name: 's',  cx: b.x + b.w / 2, cy: b.y + b.h, cursor: 'ns-resize' },
     { name: 'sw', cx: b.x, cy: b.y + b.h, cursor: 'nesw-resize' },
     { name: 'w',  cx: b.x, cy: b.y + b.h / 2, cursor: 'ew-resize' },
-  ]
-})
+  ];
+});
 
 function onHandleMousedown(handle: string, cursor: string, e: MouseEvent) {
-  props.startResize(props.stroke.id, handle, cursor, e)
+  props.startResize(props.stroke.id, handle, cursor, e);
 }
 </script>
 

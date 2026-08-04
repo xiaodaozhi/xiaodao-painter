@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useCanvasStore } from './stores/canvas'
-import { useI18n } from './composables/useI18n'
+import { useCanvasStore } from './stores/canvas';
+import { useI18n } from './composables/useI18n';
 
-const canvasStore = useCanvasStore()
-const { t } = useI18n()
+const canvasStore = useCanvasStore();
+const { t } = useI18n();
 
 const presetColors = [
   '#000000', '#ffffff', '#6b7280', '#d1d5db',
@@ -12,28 +12,35 @@ const presetColors = [
   '#2563eb', '#3b82f6', '#7c3aed', '#8b5cf6',
   '#db2777', '#ec4899', '#a16207', '#84cc16',
   '#0d9488', '#6366f1', '#d946ef', '#f43f5e',
-]
+];
 
 function onCustomColorChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  canvasStore.setColor(input.value)
+  const input = event.target as HTMLInputElement;
+  canvasStore.setColor(input.value);
 }
 
 function onSelectColor(color: string) {
-  canvasStore.setColor(color)
-  canvasStore.hideColorPalette()
+  canvasStore.setColor(color);
+  canvasStore.hideColorPalette();
 }
 
 function onTransparentClick() {
-  canvasStore.setColor('transparent')
-  canvasStore.hideColorPalette()
+  canvasStore.setColor('transparent');
+  canvasStore.hideColorPalette();
 }
 </script>
 
 <template>
   <Teleport to="body">
-    <div v-if="canvasStore.showColorPalette" class="overlay" @click="canvasStore.hideColorPalette">
-      <div class="color-palette" @click.stop>
+    <div
+      v-if="canvasStore.showColorPalette"
+      class="overlay"
+      @click="canvasStore.hideColorPalette"
+    >
+      <div
+        class="color-palette"
+        @click.stop
+      >
         <div class="palette-header">
           <span class="palette-title">
             {{ canvasStore.activeColorSlot === 'foreground' ? t('palette.stroke') : t('palette.fill') }}
@@ -58,7 +65,10 @@ function onTransparentClick() {
           />
         </div>
 
-        <div v-if="canvasStore.activeColorSlot === 'background'" class="transparent-row">
+        <div
+          v-if="canvasStore.activeColorSlot === 'background'"
+          class="transparent-row"
+        >
           <button
             class="color-swatch transparent-swatch"
             title="透明（无填充）"
@@ -75,7 +85,7 @@ function onTransparentClick() {
               :value="canvasStore.activeColorSlot === 'foreground' ? canvasStore.foregroundColor : (canvasStore.backgroundColor === 'transparent' ? '#ffffff' : canvasStore.backgroundColor)"
               class="color-picker"
               @change="onCustomColorChange"
-            />
+            >
             <span class="custom-label">{{ t('palette.custom') }}</span>
           </div>
         </div>

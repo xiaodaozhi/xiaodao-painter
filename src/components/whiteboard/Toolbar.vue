@@ -1,94 +1,94 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useToolsStore } from './stores/tools'
-import { useCanvasStore } from './stores/canvas'
-import type { ToolType } from './types'
-import { useI18n } from './composables/useI18n'
+import { computed, ref } from 'vue';
+import { useToolsStore } from './stores/tools';
+import { useCanvasStore } from './stores/canvas';
+import type { ToolType } from './types';
+import { useI18n } from './composables/useI18n';
 
-const toolsStore = useToolsStore()
-const canvasStore = useCanvasStore()
-const { t } = useI18n()
+const toolsStore = useToolsStore();
+const canvasStore = useCanvasStore();
+const { t } = useI18n();
 
-const toolTypes: ToolType[] = ['select', 'pan', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star']
+const toolTypes: ToolType[] = ['select', 'pan', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star'];
 
-const hasSelection = computed(() => canvasStore.selectedStrokeIds.size > 0)
+const hasSelection = computed(() => canvasStore.selectedStrokeIds.size > 0);
 
 // Canvas size popover
-const showCanvasSizePopover = ref(false)
-const canvasSizeInput = ref({ width: canvasStore.canvasWidth, height: canvasStore.canvasHeight })
+const showCanvasSizePopover = ref(false);
+const canvasSizeInput = ref({ width: canvasStore.canvasWidth, height: canvasStore.canvasHeight });
 
-const canvasBgInput = ref(canvasStore.canvasBackgroundColor)
+const canvasBgInput = ref(canvasStore.canvasBackgroundColor);
 
 function openCanvasSizePopover() {
-  canvasSizeInput.value = { width: canvasStore.canvasWidth, height: canvasStore.canvasHeight }
-  canvasBgInput.value = canvasStore.canvasBackgroundColor
-  showCanvasSizePopover.value = true
+  canvasSizeInput.value = { width: canvasStore.canvasWidth, height: canvasStore.canvasHeight };
+  canvasBgInput.value = canvasStore.canvasBackgroundColor;
+  showCanvasSizePopover.value = true;
 }
 
 function toggleTransparent() {
-  canvasBgInput.value = canvasBgInput.value === 'transparent' ? '#ffffff' : 'transparent'
+  canvasBgInput.value = canvasBgInput.value === 'transparent' ? '#ffffff' : 'transparent';
 }
 
 function confirmCanvasSize() {
-  const w = Math.max(1, Math.round(canvasSizeInput.value.width))
-  const h = Math.max(1, Math.round(canvasSizeInput.value.height))
-  canvasStore.setCanvasSize(w, h)
-  canvasStore.setCanvasBackgroundColor(canvasBgInput.value)
-  showCanvasSizePopover.value = false
+  const w = Math.max(1, Math.round(canvasSizeInput.value.width));
+  const h = Math.max(1, Math.round(canvasSizeInput.value.height));
+  canvasStore.setCanvasSize(w, h);
+  canvasStore.setCanvasBackgroundColor(canvasBgInput.value);
+  showCanvasSizePopover.value = false;
 }
 
 function cancelCanvasSize() {
-  showCanvasSizePopover.value = false
+  showCanvasSizePopover.value = false;
 }
 
 // Close popover on outside click
 function onPopoverBackdrop(e: MouseEvent) {
   if ((e.target as HTMLElement).classList.contains('canvas-size-backdrop')) {
-    showCanvasSizePopover.value = false
+    showCanvasSizePopover.value = false;
   }
 }
 
 // Close popover on Escape
 function onPopoverKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
-    showCanvasSizePopover.value = false
+    showCanvasSizePopover.value = false;
   }
 }
 
 // 前景色（边框色）：优先显示选中统一色，否则显示默认前景色
 const displayFg = computed(() => {
   if (hasSelection.value && canvasStore.selectedStrokeColor !== null) {
-    return canvasStore.selectedStrokeColor
+    return canvasStore.selectedStrokeColor;
   }
-  return canvasStore.foregroundColor
-})
+  return canvasStore.foregroundColor;
+});
 
 // 多选且边框颜色不一致
 const fgMixed = computed(() =>
-  hasSelection.value && canvasStore.selectedStrokeColor === null
-)
+  hasSelection.value && canvasStore.selectedStrokeColor === null,
+);
 
 // 背景色（填充色）：优先显示选中统一色，否则显示默认背景色
 const displayBg = computed(() => {
   if (hasSelection.value && canvasStore.selectedFillColor !== null) {
-    return canvasStore.selectedFillColor
+    return canvasStore.selectedFillColor;
   }
-  return canvasStore.backgroundColor
-})
+  return canvasStore.backgroundColor;
+});
 
 // 多选且填充颜色不一致
 const bgMixed = computed(() =>
-  hasSelection.value && canvasStore.selectedFillColor === null
-)
+  hasSelection.value && canvasStore.selectedFillColor === null,
+);
 
 function onFgClick() {
-  canvasStore.setColorSlot('foreground')
-  canvasStore.toggleColorPalette()
+  canvasStore.setColorSlot('foreground');
+  canvasStore.toggleColorPalette();
 }
 
 function onBgClick() {
-  canvasStore.setColorSlot('background')
-  canvasStore.toggleColorPalette()
+  canvasStore.setColorSlot('background');
+  canvasStore.toggleColorPalette();
 }
 </script>
 
@@ -103,42 +103,148 @@ function onBgClick() {
         @click="toolsStore.setTool(type)"
       >
         <!-- Select: 镂空鼠标指针 -->
-        <svg v-if="type === 'select'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          v-if="type === 'select'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M4.5 3.5l5.5 15 2.5-6 6-2.5z" />
         </svg>
         <!-- Pan: 十字四方向箭头 -->
-        <svg v-else-if="type === 'pan'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <line x1="12" y1="4" x2="12" y2="20" />
-          <line x1="4" y1="12" x2="20" y2="12" />
-          <polygon points="12,4 9,8 15,8" fill="currentColor" stroke="none" />
-          <polygon points="12,20 9,16 15,16" fill="currentColor" stroke="none" />
-          <polygon points="4,12 8,9 8,15" fill="currentColor" stroke="none" />
-          <polygon points="20,12 16,9 16,15" fill="currentColor" stroke="none" />
+        <svg
+          v-else-if="type === 'pan'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        >
+          <line
+            x1="12"
+            y1="4"
+            x2="12"
+            y2="20"
+          />
+          <line
+            x1="4"
+            y1="12"
+            x2="20"
+            y2="12"
+          />
+          <polygon
+            points="12,4 9,8 15,8"
+            fill="currentColor"
+            stroke="none"
+          />
+          <polygon
+            points="12,20 9,16 15,16"
+            fill="currentColor"
+            stroke="none"
+          />
+          <polygon
+            points="4,12 8,9 8,15"
+            fill="currentColor"
+            stroke="none"
+          />
+          <polygon
+            points="20,12 16,9 16,15"
+            fill="currentColor"
+            stroke="none"
+          />
         </svg>
         <!-- Pencil -->
-        <svg v-else-if="type === 'pencil'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-          <path d="m15 5 4 4"/>
+        <svg
+          v-else-if="type === 'pencil'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+          <path d="m15 5 4 4" />
         </svg>
         <!-- Line -->
-        <svg v-else-if="type === 'line'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <line x1="5" y1="19" x2="19" y2="5"/>
+        <svg
+          v-else-if="type === 'line'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        >
+          <line
+            x1="5"
+            y1="19"
+            x2="19"
+            y2="5"
+          />
         </svg>
         <!-- Circle -->
-        <svg v-else-if="type === 'circle'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="12" r="9"/>
+        <svg
+          v-else-if="type === 'circle'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="9"
+          />
         </svg>
         <!-- Rect -->
-        <svg v-else-if="type === 'rect'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <svg
+          v-else-if="type === 'rect'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        >
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="2"
+          />
         </svg>
         <!-- Triangle -->
-        <svg v-else-if="type === 'triangle'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <polygon points="12,3 22,21 2,21"/>
+        <svg
+          v-else-if="type === 'triangle'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        >
+          <polygon points="12,3 22,21 2,21" />
         </svg>
         <!-- Star -->
-        <svg v-else-if="type === 'star'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+        <svg
+          v-else-if="type === 'star'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        >
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
         </svg>
       </button>
     </div>
@@ -149,11 +255,38 @@ function onBgClick() {
         :title="t('tool.zoom')"
         @click="toolsStore.setTool('zoom')"
       >
-        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          <line x1="11" y1="8" x2="11" y2="14" />
-          <line x1="8" y1="11" x2="14" y2="11" />
+        <svg
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle
+            cx="11"
+            cy="11"
+            r="8"
+          />
+          <line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"
+          />
+          <line
+            x1="11"
+            y1="8"
+            x2="11"
+            y2="14"
+          />
+          <line
+            x1="8"
+            y1="11"
+            x2="14"
+            y2="11"
+          />
         </svg>
       </button>
     </div>
@@ -167,12 +300,46 @@ function onBgClick() {
         :title="t('canvasSize.title')"
         @click="openCanvasSizePopover"
       >
-        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <line x1="9" y1="3" x2="9" y2="21" />
-          <line x1="15" y1="3" x2="15" y2="21" />
-          <line x1="3" y1="9" x2="21" y2="9" />
-          <line x1="3" y1="15" x2="21" y2="15" />
+        <svg
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="2"
+          />
+          <line
+            x1="9"
+            y1="3"
+            x2="9"
+            y2="21"
+          />
+          <line
+            x1="15"
+            y1="3"
+            x2="15"
+            y2="21"
+          />
+          <line
+            x1="3"
+            y1="9"
+            x2="21"
+            y2="9"
+          />
+          <line
+            x1="3"
+            y1="15"
+            x2="21"
+            y2="15"
+          />
         </svg>
       </button>
 
@@ -183,8 +350,13 @@ function onBgClick() {
           class="canvas-size-backdrop"
           @mousedown="onPopoverBackdrop"
         >
-          <div class="canvas-size-popover" @keydown="onPopoverKeydown">
-            <div class="popover-title">{{ t('canvasSize.title') }}</div>
+          <div
+            class="canvas-size-popover"
+            @keydown="onPopoverKeydown"
+          >
+            <div class="popover-title">
+              {{ t('canvasSize.title') }}
+            </div>
             <div class="popover-field">
               <label class="popover-label">{{ t('canvasSize.width') }}</label>
               <input
@@ -194,7 +366,7 @@ function onBgClick() {
                 min="1"
                 class="popover-input"
                 @keydown.enter="confirmCanvasSize"
-              />
+              >
               <span class="popover-unit">px</span>
             </div>
             <div class="popover-field">
@@ -205,7 +377,7 @@ function onBgClick() {
                 min="1"
                 class="popover-input"
                 @keydown.enter="confirmCanvasSize"
-              />
+              >
               <span class="popover-unit">px</span>
             </div>
             <div class="popover-field">
@@ -216,21 +388,44 @@ function onBgClick() {
                   type="color"
                   class="popover-color-input"
                   :disabled="canvasBgInput === 'transparent'"
-                />
+                >
                 <button
                   :class="['transparent-btn', { active: canvasBgInput === 'transparent' }]"
                   :title="t('canvasSize.transparent')"
                   @click="toggleTransparent"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <line x1="5" y1="5" x2="19" y2="19" />
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  >
+                    <line
+                      x1="5"
+                      y1="5"
+                      x2="19"
+                      y2="19"
+                    />
                   </svg>
                 </button>
               </div>
             </div>
             <div class="popover-actions">
-              <button class="popover-btn cancel" @click="cancelCanvasSize">{{ t('canvasSize.cancel') }}</button>
-              <button class="popover-btn confirm" @click="confirmCanvasSize">{{ t('canvasSize.confirm') }}</button>
+              <button
+                class="popover-btn cancel"
+                @click="cancelCanvasSize"
+              >
+                {{ t('canvasSize.cancel') }}
+              </button>
+              <button
+                class="popover-btn confirm"
+                @click="confirmCanvasSize"
+              >
+                {{ t('canvasSize.confirm') }}
+              </button>
             </div>
           </div>
         </div>
@@ -249,9 +444,27 @@ function onBgClick() {
           :class="{ mixed: fgMixed }"
           :style="{ background: fgMixed ? 'none' : displayFg }"
         >
-          <svg v-if="fgMixed" class="mixed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <line x1="12" y1="5" x2="12" y2="19" />
+          <svg
+            v-if="fgMixed"
+            class="mixed-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            />
           </svg>
         </div>
       </div>
@@ -266,9 +479,27 @@ function onBgClick() {
           :class="{ mixed: bgMixed }"
           :style="{ background: bgMixed ? 'none' : displayBg }"
         >
-          <svg v-if="bgMixed" class="mixed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <line x1="12" y1="5" x2="12" y2="19" />
+          <svg
+            v-if="bgMixed"
+            class="mixed-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            />
           </svg>
         </div>
       </div>

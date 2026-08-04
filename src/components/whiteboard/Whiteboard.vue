@@ -1,93 +1,96 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import type { Ref } from 'vue'
-import { useCanvasStore } from './stores/canvas'
-import { useToolsStore } from './stores/tools'
-import { useDrawing } from './composables/useDrawing'
-import { useI18n } from './composables/useI18n'
-import StrokeRenderer from './StrokeRenderer.vue'
-import SelectionOverlay from './SelectionOverlay.vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import type { Ref } from 'vue';
+import { useCanvasStore } from './stores/canvas';
+import { useToolsStore } from './stores/tools';
+import { useDrawing } from './composables/useDrawing';
+import { useI18n } from './composables/useI18n';
+import StrokeRenderer from './StrokeRenderer.vue';
+import SelectionOverlay from './SelectionOverlay.vue';
 
-const canvasStore = useCanvasStore()
-const toolsStore = useToolsStore()
-const { t } = useI18n()
-const svgRef = ref<SVGSVGElement | null>(null)
-const wrapperRef = ref<HTMLElement | null>(null)
+const canvasStore = useCanvasStore();
+const toolsStore = useToolsStore();
+const { t } = useI18n();
+const svgRef = ref<SVGSVGElement | null>(null);
+const wrapperRef = ref<HTMLElement | null>(null);
 
 const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize } = useDrawing(
   svgRef as Ref<SVGSVGElement | null>,
   wrapperRef as Ref<HTMLElement | null>,
-)
+);
 
 const cursorStyle = computed(() => {
-  if (isResizing.value) return resizeCursor.value
-  if (toolsStore.activeTool === 'pan') return 'grab'
-  if (toolsStore.activeTool === 'zoom') return 'zoom-in'
-  return toolsStore.activeTool === 'select' ? 'default' : 'crosshair'
-})
+  if (isResizing.value) return resizeCursor.value;
+  if (toolsStore.activeTool === 'pan') return 'grab';
+  if (toolsStore.activeTool === 'zoom') return 'zoom-in';
+  return toolsStore.activeTool === 'select' ? 'default' : 'crosshair';
+});
 
 function handleKeydown(e: KeyboardEvent) {
-  const ctrl = e.ctrlKey || e.metaKey
+  const ctrl = e.ctrlKey || e.metaKey;
 
   if (isDrawing.value || isResizing.value) {
-    updateModifiers(e)
+    updateModifiers(e);
   }
 
   if (e.key === 'Delete' || e.key === 'Backspace') {
-    canvasStore.deleteSelectedStrokes()
+    canvasStore.deleteSelectedStrokes();
   } else if (e.key === 'Escape') {
-    canvasStore.clearSelection()
+    canvasStore.clearSelection();
   } else if (ctrl && e.key === 'z' && !e.shiftKey) {
-    e.preventDefault()
-    canvasStore.undo()
+    e.preventDefault();
+    canvasStore.undo();
   } else if (ctrl && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
-    e.preventDefault()
-    canvasStore.redo()
+    e.preventDefault();
+    canvasStore.redo();
   } else if (ctrl && e.key === 'x') {
-    e.preventDefault()
-    canvasStore.cutSelectedStrokes()
+    e.preventDefault();
+    canvasStore.cutSelectedStrokes();
   } else if (ctrl && e.key === 'c') {
-    e.preventDefault()
-    canvasStore.copySelectedStrokes()
+    e.preventDefault();
+    canvasStore.copySelectedStrokes();
   } else if (ctrl && e.key === 'v') {
-    e.preventDefault()
-    canvasStore.pasteStrokes()
+    e.preventDefault();
+    canvasStore.pasteStrokes();
   }
 }
 
 function handleKeyup(e: KeyboardEvent) {
   if (isDrawing.value || isResizing.value) {
-    updateModifiers(e)
+    updateModifiers(e);
   }
 }
 
 function handleBlur() {
-  clearModifiers()
+  clearModifiers();
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-  window.addEventListener('keyup', handleKeyup)
-  window.addEventListener('blur', handleBlur)
+  window.addEventListener('keydown', handleKeydown);
+  window.addEventListener('keyup', handleKeyup);
+  window.addEventListener('blur', handleBlur);
 
   // 初始居中
-  const el = wrapperRef.value?.parentElement
+  const el = wrapperRef.value?.parentElement;
   if (el) {
-    const cw = canvasStore.canvasWidth * canvasStore.zoomLevel
-    const ch = canvasStore.canvasHeight * canvasStore.zoomLevel
-    canvasStore.setPan((el.clientWidth - cw) / 2, (el.clientHeight - ch) / 2)
+    const cw = canvasStore.canvasWidth * canvasStore.zoomLevel;
+    const ch = canvasStore.canvasHeight * canvasStore.zoomLevel;
+    canvasStore.setPan((el.clientWidth - cw) / 2, (el.clientHeight - ch) / 2);
   }
-})
+});
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  window.removeEventListener('keyup', handleKeyup)
-  window.removeEventListener('blur', handleBlur)
-})
+  window.removeEventListener('keydown', handleKeydown);
+  window.removeEventListener('keyup', handleKeyup);
+  window.removeEventListener('blur', handleBlur);
+});
 </script>
 
 <template>
-  <div class="whiteboard" @contextmenu.prevent>
+  <div
+    class="whiteboard"
+    @contextmenu.prevent
+  >
     <div
       ref="wrapperRef"
       class="canvas-wrapper"
@@ -113,16 +116,32 @@ onUnmounted(() => {
         <defs>
           <pattern
             id="transparent-grid"
-            width="16" height="16"
+            width="16"
+            height="16"
             patternUnits="userSpaceOnUse"
           >
-            <rect width="16" height="16" fill="#ffffff" />
-            <rect width="8" height="8" fill="#f0f0f0" />
-            <rect x="8" y="8" width="8" height="8" fill="#f0f0f0" />
+            <rect
+              width="16"
+              height="16"
+              fill="#ffffff"
+            />
+            <rect
+              width="8"
+              height="8"
+              fill="#f0f0f0"
+            />
+            <rect
+              x="8"
+              y="8"
+              width="8"
+              height="8"
+              fill="#f0f0f0"
+            />
           </pattern>
         </defs>
         <rect
-          x="0" y="0"
+          x="0"
+          y="0"
           :width="canvasStore.canvasWidth"
           :height="canvasStore.canvasHeight"
           :fill="canvasStore.canvasBackgroundColor === 'transparent' ? 'url(#transparent-grid)' : canvasStore.canvasBackgroundColor"
@@ -130,7 +149,8 @@ onUnmounted(() => {
 
         <!-- 画布边框（浅色实线） -->
         <rect
-          x="0" y="0"
+          x="0"
+          y="0"
           :width="canvasStore.canvasWidth"
           :height="canvasStore.canvasHeight"
           fill="none"
@@ -182,7 +202,16 @@ onUnmounted(() => {
         :title="t('toolbar.undo')"
         @click="canvasStore.undo()"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M3 10h10a5 5 0 0 1 0 10H9" />
           <polyline points="7 6 3 10 7 14" />
         </svg>
@@ -193,7 +222,16 @@ onUnmounted(() => {
         :title="t('toolbar.redo')"
         @click="canvasStore.redo()"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M21 10H11a5 5 0 0 0 0 10h4" />
           <polyline points="17 6 21 10 17 14" />
         </svg>
@@ -205,7 +243,16 @@ onUnmounted(() => {
         :title="t('toolbar.bringToFront')"
         @click="canvasStore.moveSelectedUp()"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="m18 15-6-6-6 6" />
         </svg>
       </button>
@@ -215,11 +262,23 @@ onUnmounted(() => {
         :title="t('toolbar.sendToBack')"
         @click="canvasStore.moveSelectedDown()"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
-      <div class="tb-separator" v-if="canvasStore.selectedStrokeIds.size > 0" />
+      <div
+        v-if="canvasStore.selectedStrokeIds.size > 0"
+        class="tb-separator"
+      />
       <button
         v-if="canvasStore.selectedStrokeIds.size > 0"
         class="canvas-tb-btn canvas-tb-btn--danger"
@@ -246,7 +305,10 @@ onUnmounted(() => {
 
     <!-- 缩放指示器 -->
     <Transition name="zoom-fade">
-      <div v-if="canvasStore.showZoomIndicator" class="zoom-indicator">
+      <div
+        v-if="canvasStore.showZoomIndicator"
+        class="zoom-indicator"
+      >
         {{ t('zoom.label').replace('{percent}', String(canvasStore.getZoomPercent())) }}
       </div>
     </Transition>

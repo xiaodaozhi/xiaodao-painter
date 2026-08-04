@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Stroke } from './types'
-import { strokeToSvg } from './utils/svg'
+import type { Stroke } from './types';
+import { strokeToSvg } from './utils/svg';
 
 const props = defineProps<{
-  stroke: Stroke
-  isSelected: boolean
-}>()
+  stroke: Stroke;
+  isSelected: boolean;
+}>();
 </script>
 
 <template>

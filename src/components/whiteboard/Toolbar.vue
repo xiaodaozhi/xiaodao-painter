@@ -314,9 +314,25 @@ function onBgClick() {
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <rect x="2" y="2" width="20" height="14" rx="1.5" />
-          <line x1="7" y1="16" x2="5" y2="22" />
-          <line x1="17" y1="16" x2="19" y2="22" />
+          <rect
+            x="2"
+            y="2"
+            width="20"
+            height="14"
+            rx="1.5"
+          />
+          <line
+            x1="7"
+            y1="16"
+            x2="5"
+            y2="22"
+          />
+          <line
+            x1="17"
+            y1="16"
+            x2="19"
+            y2="22"
+          />
         </svg>
       </button>
 

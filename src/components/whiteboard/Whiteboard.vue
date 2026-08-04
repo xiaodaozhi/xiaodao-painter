@@ -12,19 +12,23 @@ const canvasStore = useCanvasStore()
 const toolsStore = useToolsStore()
 const { t } = useI18n()
 const svgRef = ref<SVGSVGElement | null>(null)
+const wrapperRef = ref<HTMLElement | null>(null)
 
-const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, updateModifiers, clearModifiers, isResizing, startResize } = useDrawing(
-  svgRef as Ref<SVGSVGElement | null>
+const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize } = useDrawing(
+  svgRef as Ref<SVGSVGElement | null>,
+  wrapperRef as Ref<HTMLElement | null>,
 )
 
 const cursorStyle = computed(() => {
+  if (isResizing.value) return resizeCursor.value
+  if (toolsStore.activeTool === 'pan') return 'grab'
+  if (toolsStore.activeTool === 'zoom') return 'zoom-in'
   return toolsStore.activeTool === 'select' ? 'default' : 'crosshair'
 })
 
 function handleKeydown(e: KeyboardEvent) {
   const ctrl = e.ctrlKey || e.metaKey
 
-  // 如果是绘制或缩放中，先更新修饰键状态
   if (isDrawing.value || isResizing.value) {
     updateModifiers(e)
   }
@@ -65,6 +69,14 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('keyup', handleKeyup)
   window.addEventListener('blur', handleBlur)
+
+  // 初始居中
+  const el = wrapperRef.value?.parentElement
+  if (el) {
+    const cw = canvasStore.canvasWidth * canvasStore.zoomLevel
+    const ch = canvasStore.canvasHeight * canvasStore.zoomLevel
+    canvasStore.setPan((el.clientWidth - cw) / 2, (el.clientHeight - ch) / 2)
+  }
 })
 
 onUnmounted(() => {
@@ -76,50 +88,91 @@ onUnmounted(() => {
 
 <template>
   <div class="whiteboard" @contextmenu.prevent>
-    <svg
-      ref="svgRef"
-      class="canvas"
-      :style="{ cursor: cursorStyle }"
-      @mousedown="onMouseDown"
-      @mousemove="onMouseMove"
-      @mouseup="onMouseUp"
+    <div
+      ref="wrapperRef"
+      class="canvas-wrapper"
+      :style="{
+        width: canvasStore.canvasWidth + 'px',
+        height: canvasStore.canvasHeight + 'px',
+        transform: canvasStore.canvasTransform,
+        transformOrigin: '0 0',
+      }"
     >
-      <rect class="canvas-bg" x="0" y="0" width="100%" height="100%" />
-
-      <g class="strokes-layer">
-        <StrokeRenderer
-          v-for="stroke in canvasStore.strokes"
-          :key="stroke.id"
-          :stroke="stroke"
-          :is-selected="canvasStore.isSelected(stroke.id)"
+      <svg
+        ref="svgRef"
+        class="canvas"
+        :viewBox="canvasStore.viewBox"
+        width="100%"
+        height="100%"
+        :style="{ cursor: cursorStyle }"
+        @mousedown="onMouseDown"
+        @mousemove="onMouseMove"
+        @mouseup="onMouseUp"
+      >
+        <!-- 画布背景区域 -->
+        <defs>
+          <pattern
+            id="transparent-grid"
+            width="16" height="16"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect width="16" height="16" fill="#ffffff" />
+            <rect width="8" height="8" fill="#f0f0f0" />
+            <rect x="8" y="8" width="8" height="8" fill="#f0f0f0" />
+          </pattern>
+        </defs>
+        <rect
+          x="0" y="0"
+          :width="canvasStore.canvasWidth"
+          :height="canvasStore.canvasHeight"
+          :fill="canvasStore.canvasBackgroundColor === 'transparent' ? 'url(#transparent-grid)' : canvasStore.canvasBackgroundColor"
         />
-      </g>
 
-      <StrokeRenderer
-        v-if="previewStroke"
-        :stroke="previewStroke"
-        :is-selected="false"
-      />
+        <!-- 画布边框（浅色实线） -->
+        <rect
+          x="0" y="0"
+          :width="canvasStore.canvasWidth"
+          :height="canvasStore.canvasHeight"
+          fill="none"
+          stroke="#c0c0c0"
+          stroke-width="2"
+        />
 
-      <SelectionOverlay
-        v-for="s in canvasStore.selectedStrokes"
-        :key="'sel-' + s.id"
-        :stroke="s"
-        :start-resize="startResize"
-      />
+        <g class="strokes-layer">
+          <StrokeRenderer
+            v-for="stroke in canvasStore.strokes"
+            :key="stroke.id"
+            :stroke="stroke"
+            :is-selected="canvasStore.isSelected(stroke.id)"
+          />
+        </g>
 
-      <rect
-        v-if="canvasStore.isSelecting && canvasStore.selectionBox"
-        :x="canvasStore.selectionBox.x"
-        :y="canvasStore.selectionBox.y"
-        :width="canvasStore.selectionBox.width"
-        :height="canvasStore.selectionBox.height"
-        fill="rgba(99, 102, 241, 0.08)"
-        stroke="#6366f1"
-        stroke-width="1"
-        stroke-dasharray="6 4"
-      />
-    </svg>
+        <StrokeRenderer
+          v-if="previewStroke"
+          :stroke="previewStroke"
+          :is-selected="false"
+        />
+
+        <SelectionOverlay
+          v-for="s in canvasStore.selectedStrokes"
+          :key="'sel-' + s.id"
+          :stroke="s"
+          :start-resize="startResize"
+        />
+
+        <rect
+          v-if="canvasStore.isSelecting && canvasStore.selectionBox"
+          :x="canvasStore.selectionBox.x"
+          :y="canvasStore.selectionBox.y"
+          :width="canvasStore.selectionBox.width"
+          :height="canvasStore.selectionBox.height"
+          fill="rgba(99, 102, 241, 0.08)"
+          stroke="#6366f1"
+          stroke-width="1"
+          stroke-dasharray="6 4"
+        />
+      </svg>
+    </div>
 
     <!-- 画布右上角工具栏 -->
     <div class="canvas-toolbar">
@@ -190,6 +243,13 @@ onUnmounted(() => {
         </svg>
       </button>
     </div>
+
+    <!-- 缩放指示器 -->
+    <Transition name="zoom-fade">
+      <div v-if="canvasStore.showZoomIndicator" class="zoom-indicator">
+        {{ t('zoom.label').replace('{percent}', String(canvasStore.getZoomPercent())) }}
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -197,23 +257,19 @@ onUnmounted(() => {
 .whiteboard {
   flex: 1;
   overflow: hidden;
-  background: var(--wb-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+  background: #e0e0e0;
   position: relative;
 }
 
-.canvas {
-  width: 100%;
-  height: 100%;
-  background: var(--wb-canvas-bg);
+.canvas-wrapper {
+  position: absolute;
+  /* pan 后默认居中 */
+  margin: auto;
+  will-change: transform;
 }
 
-.canvas-bg {
-  fill: var(--wb-canvas-bg);
-  pointer-events: none;
+.canvas {
+  display: block;
 }
 
 .canvas-toolbar {
@@ -261,5 +317,29 @@ onUnmounted(() => {
   height: 1px;
   background: var(--wb-border);
   margin: 2px 4px;
+}
+
+.zoom-indicator {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: system-ui, sans-serif;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.zoom-fade-enter-active,
+.zoom-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.zoom-fade-enter-from,
+.zoom-fade-leave-to {
+  opacity: 0;
 }
 </style>

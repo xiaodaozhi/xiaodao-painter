@@ -3,7 +3,8 @@ import { computed, watch } from 'vue'
 import type { Locale } from './utils/i18n'
 import { provideLocale } from './composables/useI18n'
 import { useCanvasStore } from './stores/canvas'
-import type { Stroke } from './types'
+import type { WhiteboardData } from './types'
+import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './types'
 import Toolbar from './Toolbar.vue'
 import Whiteboard from './Whiteboard.vue'
 import ColorPalette from './ColorPalette.vue'
@@ -12,15 +13,19 @@ import './style.css'
 const props = withDefaults(defineProps<{
   theme?: 'light' | 'dark'
   locale?: string
-  modelValue?: Stroke[]
+  modelValue?: WhiteboardData
 }>(), {
   theme: 'light',
   locale: 'zh-CN',
-  modelValue: () => [],
+  modelValue: () => ({
+    strokes: [],
+    canvasWidth: DEFAULT_CANVAS_WIDTH,
+    canvasHeight: DEFAULT_CANVAS_HEIGHT,
+  }),
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [strokes: Stroke[]]
+  'update:modelValue': [data: WhiteboardData]
 }>()
 
 const resolvedLocale = computed<Locale>(() =>
@@ -34,9 +39,25 @@ const themeClass = computed(() => `wb-theme-${props.theme}`)
 const canvasStore = useCanvasStore()
 let suppressing = false
 
-// parent -> store
+// Sync canvas size from props -> store
+canvasStore.setCanvasSize(
+  props.modelValue.canvasWidth ?? DEFAULT_CANVAS_WIDTH,
+  props.modelValue.canvasHeight ?? DEFAULT_CANVAS_HEIGHT,
+)
+
 watch(
-  () => props.modelValue,
+  () => props.modelValue.canvasWidth,
+  (w) => { if (w != null) canvasStore.setCanvasSize(w, canvasStore.canvasHeight) },
+)
+
+watch(
+  () => props.modelValue.canvasHeight,
+  (h) => { if (h != null) canvasStore.setCanvasSize(canvasStore.canvasWidth, h) },
+)
+
+// parent -> store (strokes)
+watch(
+  () => props.modelValue.strokes,
   (val) => {
     if (suppressing) return
     canvasStore.syncFromParent(val)
@@ -44,15 +65,34 @@ watch(
   { immediate: true, deep: true }
 )
 
-// store -> parent
+// store -> parent (emit merged data)
+function emitUpdate() {
+  if (suppressing) return
+  emit('update:modelValue', {
+    strokes: canvasStore.strokes,
+    canvasWidth: canvasStore.canvasWidth,
+    canvasHeight: canvasStore.canvasHeight,
+  })
+}
+
 watch(
   () => canvasStore.strokes,
-  (val) => {
+  () => {
     suppressing = true
-    emit('update:modelValue', val)
+    emitUpdate()
     setTimeout(() => { suppressing = false }, 0)
   },
   { deep: true }
+)
+
+watch(
+  () => canvasStore.canvasWidth,
+  () => { emitUpdate() },
+)
+
+watch(
+  () => canvasStore.canvasHeight,
+  () => { emitUpdate() },
 )
 </script>
 

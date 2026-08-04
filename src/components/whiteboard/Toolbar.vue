@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import { useToolsStore } from './stores/tools'
 import { useCanvasStore } from './stores/canvas'
 import type { ToolType } from './types'
@@ -8,7 +9,77 @@ const toolsStore = useToolsStore()
 const canvasStore = useCanvasStore()
 const { t } = useI18n()
 
-const toolTypes: ToolType[] = ['select', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star']
+const toolTypes: ToolType[] = ['select', 'pan', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star']
+
+const hasSelection = computed(() => canvasStore.selectedStrokeIds.size > 0)
+
+// Canvas size popover
+const showCanvasSizePopover = ref(false)
+const canvasSizeInput = ref({ width: canvasStore.canvasWidth, height: canvasStore.canvasHeight })
+
+const canvasBgInput = ref(canvasStore.canvasBackgroundColor)
+
+function openCanvasSizePopover() {
+  canvasSizeInput.value = { width: canvasStore.canvasWidth, height: canvasStore.canvasHeight }
+  canvasBgInput.value = canvasStore.canvasBackgroundColor
+  showCanvasSizePopover.value = true
+}
+
+function toggleTransparent() {
+  canvasBgInput.value = canvasBgInput.value === 'transparent' ? '#ffffff' : 'transparent'
+}
+
+function confirmCanvasSize() {
+  const w = Math.max(1, Math.round(canvasSizeInput.value.width))
+  const h = Math.max(1, Math.round(canvasSizeInput.value.height))
+  canvasStore.setCanvasSize(w, h)
+  canvasStore.setCanvasBackgroundColor(canvasBgInput.value)
+  showCanvasSizePopover.value = false
+}
+
+function cancelCanvasSize() {
+  showCanvasSizePopover.value = false
+}
+
+// Close popover on outside click
+function onPopoverBackdrop(e: MouseEvent) {
+  if ((e.target as HTMLElement).classList.contains('canvas-size-backdrop')) {
+    showCanvasSizePopover.value = false
+  }
+}
+
+// Close popover on Escape
+function onPopoverKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    showCanvasSizePopover.value = false
+  }
+}
+
+// 前景色（边框色）：优先显示选中统一色，否则显示默认前景色
+const displayFg = computed(() => {
+  if (hasSelection.value && canvasStore.selectedStrokeColor !== null) {
+    return canvasStore.selectedStrokeColor
+  }
+  return canvasStore.foregroundColor
+})
+
+// 多选且边框颜色不一致
+const fgMixed = computed(() =>
+  hasSelection.value && canvasStore.selectedStrokeColor === null
+)
+
+// 背景色（填充色）：优先显示选中统一色，否则显示默认背景色
+const displayBg = computed(() => {
+  if (hasSelection.value && canvasStore.selectedFillColor !== null) {
+    return canvasStore.selectedFillColor
+  }
+  return canvasStore.backgroundColor
+})
+
+// 多选且填充颜色不一致
+const bgMixed = computed(() =>
+  hasSelection.value && canvasStore.selectedFillColor === null
+)
 
 function onFgClick() {
   canvasStore.setColorSlot('foreground')
@@ -31,10 +102,18 @@ function onBgClick() {
         :title="t(`tool.${type}`)"
         @click="toolsStore.setTool(type)"
       >
-        <!-- Select -->
-        <svg v-if="type === 'select'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 3l14 9-7 2.5L9.5 21 5 3z"/>
-          <line x1="12" y1="14.5" x2="15" y2="17" stroke-width="1.2"/>
+        <!-- Select: 镂空鼠标指针 -->
+        <svg v-if="type === 'select'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 3.5l5.5 15 2.5-6 6-2.5z" />
+        </svg>
+        <!-- Pan: 十字四方向箭头 -->
+        <svg v-else-if="type === 'pan'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <line x1="12" y1="4" x2="12" y2="20" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <polygon points="12,4 9,8 15,8" fill="currentColor" stroke="none" />
+          <polygon points="12,20 9,16 15,16" fill="currentColor" stroke="none" />
+          <polygon points="4,12 8,9 8,15" fill="currentColor" stroke="none" />
+          <polygon points="20,12 16,9 16,15" fill="currentColor" stroke="none" />
         </svg>
         <!-- Pencil -->
         <svg v-else-if="type === 'pencil'" class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -64,7 +143,99 @@ function onBgClick() {
       </button>
     </div>
 
+    <div class="tool-group nav-group">
+      <button
+        :class="['tool-btn', { active: toolsStore.activeTool === 'zoom' }]"
+        :title="t('tool.zoom')"
+        @click="toolsStore.setTool('zoom')"
+      >
+        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          <line x1="11" y1="8" x2="11" y2="14" />
+          <line x1="8" y1="11" x2="14" y2="11" />
+        </svg>
+      </button>
+    </div>
+
     <div class="spacer" />
+
+    <!-- Canvas size button -->
+    <div class="canvas-size-wrapper">
+      <button
+        class="tool-btn"
+        :title="t('canvasSize.title')"
+        @click="openCanvasSizePopover"
+      >
+        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <line x1="9" y1="3" x2="9" y2="21" />
+          <line x1="15" y1="3" x2="15" y2="21" />
+          <line x1="3" y1="9" x2="21" y2="9" />
+          <line x1="3" y1="15" x2="21" y2="15" />
+        </svg>
+      </button>
+
+      <!-- Popover -->
+      <Teleport to="body">
+        <div
+          v-if="showCanvasSizePopover"
+          class="canvas-size-backdrop"
+          @mousedown="onPopoverBackdrop"
+        >
+          <div class="canvas-size-popover" @keydown="onPopoverKeydown">
+            <div class="popover-title">{{ t('canvasSize.title') }}</div>
+            <div class="popover-field">
+              <label class="popover-label">{{ t('canvasSize.width') }}</label>
+              <input
+                ref="widthInput"
+                v-model.number="canvasSizeInput.width"
+                type="number"
+                min="1"
+                class="popover-input"
+                @keydown.enter="confirmCanvasSize"
+              />
+              <span class="popover-unit">px</span>
+            </div>
+            <div class="popover-field">
+              <label class="popover-label">{{ t('canvasSize.height') }}</label>
+              <input
+                v-model.number="canvasSizeInput.height"
+                type="number"
+                min="1"
+                class="popover-input"
+                @keydown.enter="confirmCanvasSize"
+              />
+              <span class="popover-unit">px</span>
+            </div>
+            <div class="popover-field">
+              <label class="popover-label">{{ t('canvasSize.background') }}</label>
+              <div class="bg-color-row">
+                <input
+                  v-model="canvasBgInput"
+                  type="color"
+                  class="popover-color-input"
+                  :disabled="canvasBgInput === 'transparent'"
+                />
+                <button
+                  :class="['transparent-btn', { active: canvasBgInput === 'transparent' }]"
+                  :title="t('canvasSize.transparent')"
+                  @click="toggleTransparent"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="5" y1="5" x2="19" y2="19" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="popover-actions">
+              <button class="popover-btn cancel" @click="cancelCanvasSize">{{ t('canvasSize.cancel') }}</button>
+              <button class="popover-btn confirm" @click="confirmCanvasSize">{{ t('canvasSize.confirm') }}</button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+    </div>
 
     <div class="color-section">
       <div
@@ -73,7 +244,16 @@ function onBgClick() {
         :title="t('color.foreground')"
         @click="onFgClick"
       >
-        <div class="color-swatch fg" :style="{ background: canvasStore.foregroundColor }" />
+        <div
+          class="color-swatch fg"
+          :class="{ mixed: fgMixed }"
+          :style="{ background: fgMixed ? 'none' : displayFg }"
+        >
+          <svg v-if="fgMixed" class="mixed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <line x1="12" y1="5" x2="12" y2="19" />
+          </svg>
+        </div>
       </div>
       <div
         class="color-indicator"
@@ -81,7 +261,16 @@ function onBgClick() {
         :title="t('color.background')"
         @click="onBgClick"
       >
-        <div class="color-swatch bg" :style="{ background: canvasStore.backgroundColor }" />
+        <div
+          class="color-swatch bg"
+          :class="{ mixed: bgMixed }"
+          :style="{ background: bgMixed ? 'none' : displayBg }"
+        >
+          <svg v-if="bgMixed" class="mixed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <line x1="12" y1="5" x2="12" y2="19" />
+          </svg>
+        </div>
       </div>
     </div>
   </div>
@@ -141,6 +330,156 @@ function onBgClick() {
   flex: 1;
 }
 
+/* Canvas size wrapper */
+.canvas-size-wrapper {
+  position: relative;
+  margin-bottom: 6px;
+}
+
+/* Backdrop */
+.canvas-size-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+}
+
+/* Popover */
+.canvas-size-popover {
+  position: fixed;
+  left: calc(52px + 12px);
+  bottom: 80px;
+  background: var(--wb-surface-toolbar);
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-width: 180px;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.popover-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wb-text);
+  margin-bottom: 10px;
+}
+
+.popover-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.popover-label {
+  font-size: 12px;
+  color: var(--wb-text-secondary);
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.popover-input {
+  flex: 1;
+  width: 70px;
+  height: 28px;
+  padding: 0 6px;
+  font-size: 13px;
+  border: 1px solid var(--wb-border);
+  border-radius: 4px;
+  background: var(--wb-surface);
+  color: var(--wb-text);
+  outline: none;
+  text-align: right;
+}
+
+.popover-input:focus {
+  border-color: var(--wb-accent);
+}
+
+.popover-unit {
+  font-size: 11px;
+  color: var(--wb-text-secondary);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.bg-color-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.popover-color-input {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--wb-border);
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}
+
+.popover-color-input:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.transparent-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--wb-border);
+  border-radius: 4px;
+  background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px;
+  color: var(--wb-text-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--wb-transition);
+}
+
+.transparent-btn:hover {
+  border-color: var(--wb-text-secondary);
+}
+
+.transparent-btn.active {
+  border-color: var(--wb-accent);
+  box-shadow: 0 0 0 1px var(--wb-accent);
+}
+
+.popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.popover-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--wb-border);
+  background: var(--wb-surface);
+  color: var(--wb-text);
+  cursor: pointer;
+  transition: all var(--wb-transition);
+}
+
+.popover-btn:hover {
+  background: var(--wb-surface-hover);
+}
+
+.popover-btn.confirm {
+  background: var(--wb-accent);
+  color: #fff;
+  border-color: var(--wb-accent);
+}
+
+.popover-btn.confirm:hover {
+  opacity: 0.9;
+}
+
 .color-section {
   display: flex;
   flex-direction: column;
@@ -152,11 +491,12 @@ function onBgClick() {
 .color-indicator {
   width: 32px;
   height: 32px;
-  border-radius: var(--wb-radius-sm);
+  border-radius: 8px;
   cursor: pointer;
   padding: 2px;
   border: 2px solid transparent;
   transition: all var(--wb-transition);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .color-indicator:hover {
@@ -172,12 +512,27 @@ function onBgClick() {
 .color-swatch {
   width: 100%;
   height: 100%;
-  border-radius: 5px;
+  border-radius: 6px;
   border: 1px solid var(--wb-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .bg {
-  border-radius: 5px;
+  border-radius: 6px;
   border-style: dashed;
+}
+
+.mixed {
+  background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px !important;
+}
+
+.mixed-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--wb-text-secondary);
+  pointer-events: none;
 }
 </style>

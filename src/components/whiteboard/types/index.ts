@@ -1,4 +1,4 @@
-export type ToolType = 'select' | 'pencil' | 'line' | 'circle' | 'rect' | 'triangle' | 'star'
+export type ToolType = 'select' | 'pencil' | 'line' | 'circle' | 'rect' | 'triangle' | 'star' | 'pan' | 'zoom'
 
 export interface Point {
   x: number
@@ -18,5 +18,18 @@ export interface Stroke {
   strokeWidth: number
 }
 
+export interface CanvasConfig {
+  width: number
+  height: number
+}
+
+export interface WhiteboardData {
+  strokes: Stroke[]
+  canvasWidth: number
+  canvasHeight: number
+}
+
+export const DEFAULT_CANVAS_WIDTH = 800
+export const DEFAULT_CANVAS_HEIGHT = 800
 export const STROKE_WIDTH = 3
 export const HIT_THRESHOLD = 8

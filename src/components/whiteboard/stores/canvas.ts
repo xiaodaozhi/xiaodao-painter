@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Stroke } from '../types'
-import { STROKE_WIDTH } from '../types'
+import { STROKE_WIDTH, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from '../types'
 
 export const useCanvasStore = defineStore('canvas', () => {
   const strokes = ref<Stroke[]>([])
@@ -11,6 +11,79 @@ export const useCanvasStore = defineStore('canvas', () => {
   const activeColorSlot = ref<'foreground' | 'background'>('foreground')
   const showColorPalette = ref(false)
   const strokeWidth = ref(STROKE_WIDTH)
+  const canvasBackgroundColor = ref('#ffffff')
+
+  // Canvas size and pan/zoom
+  const canvasWidth = ref(DEFAULT_CANVAS_WIDTH)
+  const canvasHeight = ref(DEFAULT_CANVAS_HEIGHT)
+  const panX = ref(0)
+  const panY = ref(0)
+  const zoomLevel = ref(1)
+  const showZoomIndicator = ref(false)
+  let zoomIndicatorTimer: ReturnType<typeof setTimeout> | null = null
+
+  // viewBox is always fixed to the canvas dimensions
+  const viewBox = computed(() => `0 0 ${canvasWidth.value} ${canvasHeight.value}`)
+
+  const canvasTransform = computed(() => {
+    return `translate(${panX.value}px, ${panY.value}px) scale(${zoomLevel.value})`
+  })
+
+  function setPan(x: number, y: number) {
+    panX.value = x
+    panY.value = y
+  }
+
+  function setCanvasSize(w: number, h: number) {
+    canvasWidth.value = w
+    canvasHeight.value = h
+  }
+
+  const ZOOM_STEPS = [0.1, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6, 8, 10]
+
+  /**
+   * Zoom at a canvas-coordinate point (in screen space before zoom),
+   * keeping that point stationary by adjusting pan.
+   */
+  function zoomAt(screenX: number, screenY: number, factor: number) {
+    const cur = zoomLevel.value
+    const zoomingIn = factor > 1
+
+    let nextZoom: number | null = null
+    for (const step of ZOOM_STEPS) {
+      if (zoomingIn) {
+        if (step > cur + 0.001) { nextZoom = step; break }
+      } else {
+        if (step < cur - 0.001) nextZoom = step
+      }
+    }
+    if (nextZoom === null) return
+
+    // The screen point (screenX, screenY) corresponds to:
+    // canvasX = (screenX - panX) / cur
+    // canvasY = (screenY - panY) / cur
+    const canvasX = (screenX - panX.value) / cur
+    const canvasY = (screenY - panY.value) / cur
+
+    // After zoom, keep same canvas point at same screen position:
+    // newScreenX = canvasX * nextZoom + newPanX
+    // newScreenX should = screenX
+    // => newPanX = screenX - canvasX * nextZoom
+    panX.value = screenX - canvasX * nextZoom
+    panY.value = screenY - canvasY * nextZoom
+    zoomLevel.value = nextZoom
+
+    // Show zoom indicator
+    showZoomIndicator.value = true
+    if (zoomIndicatorTimer) clearTimeout(zoomIndicatorTimer)
+    zoomIndicatorTimer = setTimeout(() => {
+      showZoomIndicator.value = false
+    }, 1500)
+  }
+
+  function getZoomPercent(): number {
+    return Math.round(zoomLevel.value * 100)
+  }
 
   // undo/redo
   const undoStack = ref<Stroke[][]>([])
@@ -24,6 +97,10 @@ export const useCanvasStore = defineStore('canvas', () => {
     strokeWidth.value = w
   }
 
+  function setCanvasBackgroundColor(color: string) {
+    canvasBackgroundColor.value = color
+  }
+
   function toggleColorPalette() {
     showColorPalette.value = !showColorPalette.value
   }
@@ -34,6 +111,23 @@ export const useCanvasStore = defineStore('canvas', () => {
 
   const selectedStrokes = computed(() => {
     return strokes.value.filter(s => selectedStrokeIds.value.has(s.id))
+  })
+
+  // 选中图形的统一边框颜色：全部一致时返回颜色，不一致返回 null
+  const selectedStrokeColor = computed<string | null>(() => {
+    const sel = selectedStrokes.value
+    if (sel.length === 0) return null
+    const first = sel[0].strokeColor
+    return sel.every(s => s.strokeColor === first) ? first : null
+  })
+
+  // 选中图形的统一填充颜色：排除直线/铅笔，全部一致返回颜色，不一致返回 null
+  const selectedFillColor = computed<string | null>(() => {
+    const fills = selectedStrokes.value
+      .filter(s => s.type !== 'line' && s.type !== 'pencil')
+    if (fills.length === 0) return null
+    const first = fills[0].fillColor
+    return fills.every(s => s.fillColor === first) ? first : null
   })
 
   // keep compatibility：单笔选中时返回该笔画
@@ -251,6 +345,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     selectedStrokeId,
     selectedStroke,
     selectedStrokes,
+    selectedStrokeColor,
+    selectedFillColor,
     foregroundColor,
     backgroundColor,
     activeColorSlot,
@@ -271,6 +367,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     buildStroke,
     strokeWidth,
     setStrokeWidth,
+    canvasBackgroundColor,
+    setCanvasBackgroundColor,
     canUndo,
     canRedo,
     pushUndo,
@@ -284,5 +382,17 @@ export const useCanvasStore = defineStore('canvas', () => {
     cutSelectedStrokes,
     copySelectedStrokes,
     pasteStrokes,
+    canvasWidth,
+    canvasHeight,
+    panX,
+    panY,
+    zoomLevel,
+    showZoomIndicator,
+    viewBox,
+    canvasTransform,
+    setPan,
+    setCanvasSize,
+    zoomAt,
+    getZoomPercent,
   }
 })

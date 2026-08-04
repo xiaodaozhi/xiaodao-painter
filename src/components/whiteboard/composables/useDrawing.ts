@@ -5,7 +5,7 @@ import { useCanvasStore } from '../stores/canvas'
 import { useToolsStore } from '../stores/tools'
 import { hitTestStroke, computeBoundingBox } from '../utils/geometry'
 
-export function useDrawing(svgRef: Ref<SVGSVGElement | null>) {
+export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref<HTMLElement | null>) {
   const canvasStore = useCanvasStore()
   const toolsStore = useToolsStore()
 
@@ -27,6 +27,30 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>) {
   const resizeHandle = ref('')
   const resizeCursor = ref('')
   const resizeOriginal = ref<{ x: number; y: number; width: number; height: number; type: string } | null>(null)
+
+  // 平移画布
+  const isPanning = ref(false)
+  const panStartScreenX = ref(0)
+  const panStartScreenY = ref(0)
+  const panStartPanX = ref(0)
+  const panStartPanY = ref(0)
+
+  function handlePanMove(event: MouseEvent) {
+    if (!isPanning.value) return
+    const dx = event.clientX - panStartScreenX.value
+    const dy = event.clientY - panStartScreenY.value
+    canvasStore.setPan(
+      panStartPanX.value + dx,
+      panStartPanY.value + dy,
+    )
+  }
+
+  function handlePanEnd() {
+    if (!isPanning.value) return
+    isPanning.value = false
+    window.removeEventListener('mousemove', handlePanMove)
+    window.removeEventListener('mouseup', handlePanEnd)
+  }
 
   function applyModifiers(type: string, sx: number, sy: number, cx: number, cy: number) {
     let dx = cx - sx
@@ -84,7 +108,7 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>) {
   const previewStroke = computed<Stroke | null>(() => {
     if (!isDrawing.value) return null
     const type = toolsStore.activeTool
-    if (type === 'select') return null
+    if (type === 'select' || type === 'pan' || type === 'zoom') return null
 
     const { x, y } = startPoint.value
     const { x: cx, y: cy } = currentPoint.value
@@ -115,18 +139,61 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>) {
     }
   })
 
+  /**
+   * Convert mouse event coordinates to SVG canvas coordinates.
+   * Since the SVG CSS size may differ from its viewBox (due to zoom),
+   * we use the inverse of getScreenCTM() to get the correct canvas coordinate.
+   * This automatically accounts for scroll, transform, and viewBox.
+   */
   function getSVGPoint(event: MouseEvent): Point {
     const svg = svgRef.value
     if (!svg) return { x: 0, y: 0 }
-    const rect = svg.getBoundingClientRect()
+    const pt = svg.createSVGPoint()
+    pt.x = event.clientX
+    pt.y = event.clientY
+    const ctm = svg.getScreenCTM()
+    if (ctm) {
+      const transformed = pt.matrixTransform(ctm.inverse())
+      return { x: transformed.x, y: transformed.y }
+    }
+    // Fallback: manual calculation with container offset
+    const container = whiteboardRef.value
+    const rect = container?.getBoundingClientRect() ?? svg.getBoundingClientRect()
+    const scaleX = canvasStore.canvasWidth * canvasStore.zoomLevel / (rect.width || 1)
+    const scaleY = canvasStore.canvasHeight * canvasStore.zoomLevel / (rect.height || 1)
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
+      x: (event.clientX - rect.left + (container?.scrollLeft ?? 0)) / scaleX,
+      y: (event.clientY - rect.top + (container?.scrollTop ?? 0)) / scaleY,
     }
   }
 
   function onMouseDown(event: MouseEvent) {
     const pt = getSVGPoint(event)
+
+    // Pan tool
+    if (toolsStore.activeTool === 'pan') {
+      isPanning.value = true
+      panStartScreenX.value = event.clientX
+      panStartScreenY.value = event.clientY
+      panStartPanX.value = canvasStore.panX
+      panStartPanY.value = canvasStore.panY
+      window.addEventListener('mousemove', handlePanMove)
+      window.addEventListener('mouseup', handlePanEnd)
+      return
+    }
+
+    // Zoom tool
+    if (toolsStore.activeTool === 'zoom') {
+      const factor = event.button === 2 ? 0.8 : 1.25
+      // Get the screen position of the click via the wrapper element
+      const wrapper = whiteboardRef.value
+      if (wrapper) {
+        const rect = wrapper.getBoundingClientRect()
+        canvasStore.zoomAt(event.clientX - rect.left, event.clientY - rect.top, factor)
+      }
+      return
+    }
+
     startPoint.value = pt
     currentPoint.value = pt
     isDrawing.value = true
@@ -192,6 +259,9 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>) {
   }
 
   function onMouseUp(event: MouseEvent) {
+    // Zoom tool — no action on mouseup
+    if (toolsStore.activeTool === 'zoom') return
+
     if (!isDrawing.value) return
     isDrawing.value = false
 

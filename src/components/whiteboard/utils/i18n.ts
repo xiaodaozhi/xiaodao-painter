@@ -8,6 +8,8 @@ const zhCN: Record<string, string> = {
   'tool.rect': '矩形',
   'tool.triangle': '三角形',
   'tool.star': '五角星',
+  'tool.pan': '移动画布',
+  'tool.zoom': '缩放',
   'color.foreground': '前景色（描边）',
   'color.background': '背景色（填充）',
   'palette.stroke': '描边颜色',
@@ -18,6 +20,14 @@ const zhCN: Record<string, string> = {
   'toolbar.bringToFront': '上移图层',
   'toolbar.sendToBack': '下移图层',
   'toolbar.delete': '删除',
+  'zoom.label': '缩放：{percent}%',
+  'canvasSize.title': '画布设置',
+  'canvasSize.width': '宽度',
+  'canvasSize.height': '高度',
+  'canvasSize.confirm': '确定',
+  'canvasSize.cancel': '取消',
+  'canvasSize.background': '背景',
+  'canvasSize.transparent': '透明',
 }
 
 const enUS: Record<string, string> = {
@@ -28,6 +38,8 @@ const enUS: Record<string, string> = {
   'tool.rect': 'Rectangle',
   'tool.triangle': 'Triangle',
   'tool.star': 'Star',
+  'tool.pan': 'Pan Canvas',
+  'tool.zoom': 'Zoom',
   'color.foreground': 'Stroke Color',
   'color.background': 'Fill Color',
   'palette.stroke': 'Stroke Color',
@@ -38,6 +50,14 @@ const enUS: Record<string, string> = {
   'toolbar.bringToFront': 'Bring to Front',
   'toolbar.sendToBack': 'Send to Back',
   'toolbar.delete': 'Delete',
+  'zoom.label': 'Zoom: {percent}%',
+  'canvasSize.title': 'Canvas Settings',
+  'canvasSize.width': 'Width',
+  'canvasSize.height': 'Height',
+  'canvasSize.confirm': 'OK',
+  'canvasSize.cancel': 'Cancel',
+  'canvasSize.background': 'Background',
+  'canvasSize.transparent': 'Transparent',
 }
 
 const locales: Record<Locale, Record<string, string>> = {

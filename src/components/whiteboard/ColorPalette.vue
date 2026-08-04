@@ -98,13 +98,13 @@ function onTransparentClick() {
   transform: none;
   background: var(--wb-surface);
   border: 1px solid var(--wb-border);
-  border-radius: var(--wb-radius-lg);
+  border-radius: 8px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 300px;
-  box-shadow: var(--wb-shadow-lg);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
   z-index: 101;
 }
 

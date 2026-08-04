@@ -12,6 +12,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const showColorPalette = ref(false);
   const strokeWidth = ref(STROKE_WIDTH);
   const canvasBackgroundColor = ref('#ffffff');
+  const theme = ref<'light' | 'dark'>('light');
   const dataVersion = ref(0);
 
   // Canvas size and pan/zoom
@@ -404,5 +405,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     zoomAt,
     getZoomPercent,
     dataVersion,
+    theme,
   };
 });

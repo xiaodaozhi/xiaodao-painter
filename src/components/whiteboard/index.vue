@@ -46,10 +46,26 @@ const rootStyle = computed(() => {
 
 provideLocale(resolvedLocale.value);
 
-const themeClass = computed(() => `wb-theme-${props.theme}`);
-
 const canvasStore = useCanvasStore();
 let suppressing = false;
+
+watch(
+  () => props.theme,
+  (newTheme, oldTheme) => {
+    canvasStore.theme = newTheme || 'light';
+
+    if (newTheme === 'dark' && canvasStore.foregroundColor === '#000000') {
+      canvasStore.foregroundColor = '#ffffff';
+    } else if (newTheme === 'light' && oldTheme === 'dark' && canvasStore.foregroundColor === '#ffffff') {
+      canvasStore.foregroundColor = '#000000';
+    }
+  },
+  { immediate: true },
+);
+
+const themeClass = computed(() => {
+  return `wb-theme-${props.theme}`;
+});
 
 // Sync canvas size from props -> store
 canvasStore.setCanvasSize(

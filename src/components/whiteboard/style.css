@@ -10,6 +10,9 @@
   --wb-accent: #6366f1;
   --wb-accent-light: #eef2ff;
   --wb-canvas-bg: #ffffff;
+  --wb-canvas-surround: #e0e0e0;
+  --wb-grid-a: #ffffff;
+  --wb-grid-b: #f0f0f0;
   --wb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --wb-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --wb-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -30,6 +33,9 @@
   --wb-accent: #818cf8;
   --wb-accent-light: rgba(129, 140, 248, 0.15);
   --wb-canvas-bg: #1e1e30;
+  --wb-canvas-surround: #12121f;
+  --wb-grid-a: #2a2a3e;
+  --wb-grid-b: #1e1e30;
   --wb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --wb-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --wb-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);

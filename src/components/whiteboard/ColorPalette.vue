@@ -48,9 +48,29 @@ function onTransparentClick() {
           <div class="current-color">
             <div
               class="current-swatch"
-              :class="{ fill: canvasStore.activeColorSlot === 'background' }"
-              :style="{ background: canvasStore.activeColorSlot === 'foreground' ? canvasStore.foregroundColor : canvasStore.backgroundColor }"
-            />
+              :class="{
+                fill: canvasStore.activeColorSlot === 'background',
+                'current-transparent': canvasStore.activeColorSlot === 'background' && canvasStore.backgroundColor === 'transparent',
+              }"
+              :style="{
+                background: canvasStore.activeColorSlot === 'foreground'
+                  ? canvasStore.foregroundColor
+                  : (canvasStore.backgroundColor === 'transparent' ? 'none' : canvasStore.backgroundColor),
+              }"
+            >
+              <svg
+                v-if="canvasStore.activeColorSlot === 'background' && canvasStore.backgroundColor === 'transparent'"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <line x1="5" y1="5" x2="19" y2="19" />
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -74,7 +94,17 @@ function onTransparentClick() {
             title="透明（无填充）"
             @click="onTransparentClick"
           >
-            <span class="transparent-icon">/</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#d00"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <line x1="5" y1="5" x2="19" y2="19" />
+            </svg>
           </button>
         </div>
 
@@ -148,6 +178,13 @@ function onTransparentClick() {
   border-radius: 6px;
 }
 
+.current-transparent {
+  background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .preset-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -188,13 +225,6 @@ function onTransparentClick() {
   justify-content: center;
 }
 
-.transparent-icon {
-  font-size: 20px;
-  font-weight: 700;
-  color: #d00;
-  line-height: 1;
-  pointer-events: none;
-}
 
 .palette-footer {
   padding-top: 10px;

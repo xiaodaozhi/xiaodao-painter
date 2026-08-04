@@ -132,9 +132,23 @@ onUnmounted(() => {
             height="16"
             patternUnits="userSpaceOnUse"
           >
-            <rect width="16" height="16" fill="#ffffff" />
-            <rect width="8" height="8" fill="#f0f0f0" />
-            <rect x="8" y="8" width="8" height="8" fill="#f0f0f0" />
+            <rect
+              width="16"
+              height="16"
+              fill="#ffffff"
+            />
+            <rect
+              width="8"
+              height="8"
+              fill="#f0f0f0"
+            />
+            <rect
+              x="8"
+              y="8"
+              width="8"
+              height="8"
+              fill="#f0f0f0"
+            />
           </pattern>
           <pattern
             id="grid-dark"
@@ -142,21 +156,37 @@ onUnmounted(() => {
             height="16"
             patternUnits="userSpaceOnUse"
           >
-            <rect width="16" height="16" fill="#1e1e30" />
-            <rect width="8" height="8" fill="#2a2a3e" />
-            <rect x="8" y="8" width="8" height="8" fill="#2a2a3e" />
+            <rect
+              width="16"
+              height="16"
+              fill="#1e1e30"
+            />
+            <rect
+              width="8"
+              height="8"
+              fill="#2a2a3e"
+            />
+            <rect
+              x="8"
+              y="8"
+              width="8"
+              height="8"
+              fill="#2a2a3e"
+            />
           </pattern>
         </defs>
         <rect
           v-if="canvasStore.canvasBackgroundColor === 'transparent'"
-          x="0" y="0"
+          x="0"
+          y="0"
           :width="canvasStore.canvasWidth"
           :height="canvasStore.canvasHeight"
           :fill="canvasStore.theme === 'dark' ? 'url(#grid-dark)' : 'url(#grid-light)'"
         />
         <rect
           v-else
-          x="0" y="0"
+          x="0"
+          y="0"
           :width="canvasStore.canvasWidth"
           :height="canvasStore.canvasHeight"
           :fill="canvasStore.canvasBackgroundColor"

@@ -469,8 +469,8 @@ function onBgClick() {
       >
         <div
           class="color-swatch bg"
-          :class="{ mixed: bgMixed }"
-          :style="{ background: bgMixed ? 'none' : displayBg }"
+          :class="{ mixed: bgMixed, transparent: !bgMixed && displayBg === 'transparent' }"
+          :style="{ background: bgMixed ? 'none' : (displayBg === 'transparent' ? 'none' : displayBg) }"
         >
           <svg
             v-if="bgMixed"
@@ -481,18 +481,19 @@ function onBgClick() {
             stroke-width="2"
             stroke-linecap="round"
           >
-            <line
-              x1="5"
-              y1="12"
-              x2="19"
-              y2="12"
-            />
-            <line
-              x1="12"
-              y1="5"
-              x2="12"
-              y2="19"
-            />
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <line x1="12" y1="5" x2="12" y2="19" />
+          </svg>
+          <svg
+            v-else-if="displayBg === 'transparent'"
+            class="mixed-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <line x1="5" y1="5" x2="19" y2="19" />
           </svg>
         </div>
       </div>
@@ -750,6 +751,10 @@ function onBgClick() {
 }
 
 .mixed {
+  background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px !important;
+}
+
+.transparent {
   background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px !important;
 }
 

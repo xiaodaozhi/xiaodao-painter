@@ -12,6 +12,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const showColorPalette = ref(false);
   const strokeWidth = ref(STROKE_WIDTH);
   const canvasBackgroundColor = ref('#ffffff');
+  const dataVersion = ref(0);
 
   // Canvas size and pan/zoom
   const canvasWidth = ref(DEFAULT_CANVAS_WIDTH);
@@ -37,6 +38,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   function setCanvasSize(w: number, h: number) {
     canvasWidth.value = w;
     canvasHeight.value = h;
+    dataVersion.value++;
   }
 
   const ZOOM_STEPS = [0.1, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6, 8, 10];
@@ -102,6 +104,7 @@ export const useCanvasStore = defineStore('canvas', () => {
 
   function setCanvasBackgroundColor(color: string) {
     canvasBackgroundColor.value = color;
+    dataVersion.value++;
   }
 
   function toggleColorPalette() {
@@ -308,6 +311,7 @@ export const useCanvasStore = defineStore('canvas', () => {
           updateStroke(id, { fillColor: color });
         }
       }
+      dataVersion.value++;
     } else {
       if (activeColorSlot.value === 'foreground') {
         if (color === 'transparent') return;
@@ -399,5 +403,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     setCanvasSize,
     zoomAt,
     getZoomPercent,
+    dataVersion,
   };
 });

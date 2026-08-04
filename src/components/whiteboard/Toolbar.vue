@@ -25,6 +25,11 @@ function openCanvasSizePopover() {
   showCanvasSizePopover.value = true;
 }
 
+const colorPickerValue = computed({
+  get: () => canvasBgInput.value === 'transparent' ? '#ffffff' : canvasBgInput.value,
+  set: (v: string) => { canvasBgInput.value = v; },
+});
+
 function toggleTransparent() {
   canvasBgInput.value = canvasBgInput.value === 'transparent' ? '#ffffff' : 'transparent';
 }
@@ -384,7 +389,7 @@ function onBgClick() {
               <label class="popover-label">{{ t('canvasSize.background') }}</label>
               <div class="bg-color-row">
                 <input
-                  v-model="canvasBgInput"
+                  v-model="colorPickerValue"
                   type="color"
                   class="popover-color-input"
                   :disabled="canvasBgInput === 'transparent'"

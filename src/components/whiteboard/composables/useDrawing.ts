@@ -275,6 +275,7 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
       if (isMoving.value) {
         isMoving.value = false;
         moveStartPositions.value.clear();
+        canvasStore.dataVersion++;
       } else {
         canvasStore.isSelecting = false;
 
@@ -484,6 +485,7 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     resizeHandle.value = '';
     resizeCursor.value = '';
     resizeOriginal.value = null;
+    canvasStore.dataVersion++;
     window.removeEventListener('mousemove', handleResizeMove);
     window.removeEventListener('mouseup', handleResizeEnd);
   }

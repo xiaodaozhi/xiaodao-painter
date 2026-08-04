@@ -79,33 +79,20 @@ watch(
 
 // store -> parent (emit merged data)
 function emitUpdate() {
-  if (suppressing) return;
+  suppressing = true;
   emit('update:modelValue', {
     strokes: canvasStore.strokes,
     canvasWidth: canvasStore.canvasWidth,
     canvasHeight: canvasStore.canvasHeight,
   });
+  setTimeout(() => {
+    suppressing = false;
+  }, 0);
 }
 
+// emit on structural changes (strokes count, canvas size) or explicit dataVersion bump
 watch(
-  () => canvasStore.strokes,
-  () => {
-    suppressing = true;
-    emitUpdate();
-    setTimeout(() => {
-      suppressing = false;
-    }, 0);
-  },
-  { deep: true },
-);
-
-watch(
-  () => canvasStore.canvasWidth,
-  () => { emitUpdate(); },
-);
-
-watch(
-  () => canvasStore.canvasHeight,
+  () => `${canvasStore.strokes.length}|${canvasStore.canvasWidth}|${canvasStore.canvasHeight}|${canvasStore.dataVersion}`,
   () => { emitUpdate(); },
 );
 </script>

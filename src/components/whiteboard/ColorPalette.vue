@@ -49,7 +49,7 @@ function onTransparentClick() {
             <div
               class="current-swatch"
               :class="{
-                fill: canvasStore.activeColorSlot === 'background',
+                'fill': canvasStore.activeColorSlot === 'background',
                 'current-transparent': canvasStore.activeColorSlot === 'background' && canvasStore.backgroundColor === 'transparent',
               }"
               :style="{
@@ -68,7 +68,12 @@ function onTransparentClick() {
                 stroke-width="2"
                 stroke-linecap="round"
               >
-                <line x1="5" y1="5" x2="19" y2="19" />
+                <line
+                  x1="5"
+                  y1="5"
+                  x2="19"
+                  y2="19"
+                />
               </svg>
             </div>
           </div>
@@ -103,7 +108,12 @@ function onTransparentClick() {
               stroke-width="2"
               stroke-linecap="round"
             >
-              <line x1="5" y1="5" x2="19" y2="19" />
+              <line
+                x1="5"
+                y1="5"
+                x2="19"
+                y2="19"
+              />
             </svg>
           </button>
         </div>
@@ -224,7 +234,6 @@ function onTransparentClick() {
   align-items: center;
   justify-content: center;
 }
-
 
 .palette-footer {
   padding-top: 10px;

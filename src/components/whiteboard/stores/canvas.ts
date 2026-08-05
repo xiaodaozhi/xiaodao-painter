@@ -11,7 +11,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const activeColorSlot = ref<'foreground' | 'background'>('foreground');
   const showColorPalette = ref(false);
   const strokeWidth = ref(STROKE_WIDTH);
-  const canvasBackgroundColor = ref('#ffffff');
+  const canvasBackgroundColor = ref('transparent');
   const theme = ref<'light' | 'dark'>('light');
   const dataVersion = ref(0);
 
@@ -357,7 +357,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     activeColorSlot.value = 'foreground';
     showColorPalette.value = false;
     strokeWidth.value = STROKE_WIDTH;
-    canvasBackgroundColor.value = '#ffffff';
+    canvasBackgroundColor.value = 'transparent';
     theme.value = 'light';
     dataVersion.value = 0;
     canvasWidth.value = DEFAULT_CANVAS_WIDTH;

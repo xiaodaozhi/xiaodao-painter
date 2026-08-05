@@ -5,7 +5,7 @@ import { useCanvasStore } from './stores/canvas';
 
 const props = defineProps<{
   stroke: Stroke;
-  startResize: (strokeId: string, handle: string, cursor: string, event: MouseEvent) => void;
+  startResize: (strokeId: string, handle: string, cursor: string, event: MouseEvent | TouchEvent) => void;
 }>();
 
 const canvasStore = useCanvasStore();
@@ -47,7 +47,9 @@ const nonLineHandlePositions = computed(() => {
   ];
 });
 
-function onHandleMousedown(handle: string, cursor: string, e: MouseEvent) {
+function onHandleStart(handle: string, cursor: string, e: MouseEvent | TouchEvent) {
+  e.preventDefault();
+  e.stopPropagation();
   props.startResize(props.stroke.id, handle, cursor, e);
 }
 </script>
@@ -81,7 +83,8 @@ function onHandleMousedown(handle: string, cursor: string, e: MouseEvent) {
       stroke-width="1.5"
       rx="1"
       :style="{ cursor: h.cursor }"
-      @mousedown.stop.prevent="onHandleMousedown(h.name, h.cursor, $event)"
+      @mousedown.stop.prevent="onHandleStart(h.name, h.cursor, $event)"
+      @touchstart.stop.prevent="onHandleStart(h.name, h.cursor, $event)"
     />
 
     <!-- 其余图形：八个手柄 -->
@@ -98,7 +101,8 @@ function onHandleMousedown(handle: string, cursor: string, e: MouseEvent) {
       stroke-width="1.5"
       rx="1"
       :style="{ cursor: h.cursor }"
-      @mousedown.stop.prevent="onHandleMousedown(h.name, h.cursor, $event)"
+      @mousedown.stop.prevent="onHandleStart(h.name, h.cursor, $event)"
+      @touchstart.stop.prevent="onHandleStart(h.name, h.cursor, $event)"
     />
   </g>
 </template>

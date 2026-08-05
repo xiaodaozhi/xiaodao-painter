@@ -50,6 +50,8 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     isPanning.value = false;
     window.removeEventListener('mousemove', handlePanMove);
     window.removeEventListener('mouseup', handlePanEnd);
+    window.removeEventListener('touchmove', handlePanTouchMove);
+    window.removeEventListener('touchend', handlePanTouchEnd);
   }
 
   function applyModifiers(type: string, sx: number, sy: number, cx: number, cy: number) {
@@ -141,9 +143,6 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
 
   /**
    * Convert mouse event coordinates to SVG canvas coordinates.
-   * Since the SVG CSS size may differ from its viewBox (due to zoom),
-   * we use the inverse of getScreenCTM() to get the correct canvas coordinate.
-   * This automatically accounts for scroll, transform, and viewBox.
    */
   function getSVGPoint(event: MouseEvent): Point {
     const svg = svgRef.value;
@@ -167,29 +166,64 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     };
   }
 
+  // --- Shared pointer coordinate helpers ---
+
+  function pointerDown(clientX: number, clientY: number) {
+    const svg = svgRef.value;
+    if (!svg) return { x: 0, y: 0 };
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      const transformed = pt.matrixTransform(ctm.inverse());
+      return { x: transformed.x, y: transformed.y };
+    }
+    const container = whiteboardRef.value;
+    const rect = container?.getBoundingClientRect() ?? svg.getBoundingClientRect();
+    const scaleX = canvasStore.canvasWidth * canvasStore.zoomLevel / (rect.width || 1);
+    const scaleY = canvasStore.canvasHeight * canvasStore.zoomLevel / (rect.height || 1);
+    return {
+      x: (clientX - rect.left + (container?.scrollLeft ?? 0)) / scaleX,
+      y: (clientY - rect.top + (container?.scrollTop ?? 0)) / scaleY,
+    };
+  }
+
   function onMouseDown(event: MouseEvent) {
-    const pt = getSVGPoint(event);
+    handlePointerDown(event.clientX, event.clientY, event.type === 'mousedown' ? event : undefined);
+  }
+
+  function onTouchStart(event: TouchEvent) {
+    if (event.touches.length !== 1) return;
+    event.preventDefault();
+    const touch = event.touches[0]!;
+    handlePointerDown(touch.clientX, touch.clientY);
+  }
+
+  function handlePointerDown(clientX: number, clientY: number, mouseEvent?: MouseEvent) {
+    const pt = pointerDown(clientX, clientY);
 
     // Pan tool
     if (toolsStore.activeTool === 'pan') {
       isPanning.value = true;
-      panStartScreenX.value = event.clientX;
-      panStartScreenY.value = event.clientY;
+      panStartScreenX.value = clientX;
+      panStartScreenY.value = clientY;
       panStartPanX.value = canvasStore.panX;
       panStartPanY.value = canvasStore.panY;
       window.addEventListener('mousemove', handlePanMove);
       window.addEventListener('mouseup', handlePanEnd);
+      window.addEventListener('touchmove', handlePanTouchMove, { passive: false });
+      window.addEventListener('touchend', handlePanTouchEnd);
       return;
     }
 
-    // Zoom tool
-    if (toolsStore.activeTool === 'zoom') {
-      const factor = event.button === 2 ? 0.8 : 1.25;
-      // Get the screen position of the click via the wrapper element
+    // Zoom tool (mouse only — right-click to zoom out; touch uses pinch gesture handled separately)
+    if (toolsStore.activeTool === 'zoom' && mouseEvent) {
+      const factor = mouseEvent.button === 2 ? 0.8 : 1.25;
       const wrapper = whiteboardRef.value;
       if (wrapper) {
         const rect = wrapper.getBoundingClientRect();
-        canvasStore.zoomAt(event.clientX - rect.left, event.clientY - rect.top, factor);
+        canvasStore.zoomAt(clientX - rect.left, clientY - rect.top, factor);
       }
       return;
     }
@@ -203,7 +237,6 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     }
 
     if (toolsStore.activeTool === 'select') {
-      // 检查是否点中了已选中的笔画（移动操作）
       const hit = [...canvasStore.strokes].reverse().find((s) => hitTestStroke(pt, s));
       if (hit && canvasStore.isSelected(hit.id)) {
         canvasStore.pushUndo();
@@ -226,8 +259,20 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
   }
 
   function onMouseMove(event: MouseEvent) {
+    handlePointerMove(event.clientX, event.clientY);
+  }
+
+  function onTouchMove(event: TouchEvent) {
+    if (event.touches.length !== 1) return;
+    event.preventDefault();
+    const touch = event.touches[0]!;
+    handlePointerMove(touch.clientX, touch.clientY);
+  }
+
+  function handlePointerMove(clientX: number, clientY: number) {
+    const pt = pointerDown(clientX, clientY);
+
     if (!isDrawing.value) return;
-    const pt = getSVGPoint(event);
     currentPoint.value = pt;
 
     if (toolsStore.activeTool === 'pencil') {
@@ -258,14 +303,44 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     }
   }
 
+  // --- Pan touch handlers ---
+
+  function handlePanTouchMove(event: TouchEvent) {
+    if (!isPanning.value || event.touches.length !== 1) return;
+    event.preventDefault();
+    const touch = event.touches[0]!;
+    const dx = touch.clientX - panStartScreenX.value;
+    const dy = touch.clientY - panStartScreenY.value;
+    canvasStore.setPan(panStartPanX.value + dx, panStartPanY.value + dy);
+  }
+
+  function handlePanTouchEnd() {
+    if (!isPanning.value) return;
+    isPanning.value = false;
+    window.removeEventListener('mousemove', handlePanMove);
+    window.removeEventListener('mouseup', handlePanEnd);
+    window.removeEventListener('touchmove', handlePanTouchMove);
+    window.removeEventListener('touchend', handlePanTouchEnd);
+  }
+
   function onMouseUp(event: MouseEvent) {
+    handlePointerUp(event.clientX, event.clientY);
+  }
+
+  function onTouchEnd(event: TouchEvent) {
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    handlePointerUp(touch.clientX, touch.clientY);
+  }
+
+  function handlePointerUp(clientX: number, clientY: number) {
     // Zoom tool — no action on mouseup
     if (toolsStore.activeTool === 'zoom') return;
 
     if (!isDrawing.value) return;
     isDrawing.value = false;
 
-    const pt = getSVGPoint(event);
+    const pt = pointerDown(clientX, clientY);
     const dx = pt.x - startPoint.value.x;
     const dy = pt.y - startPoint.value.y;
     const dist = Math.hypot(dx, dy);
@@ -287,7 +362,6 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
           const ids: string[] = [];
           for (const s of [...canvasStore.strokes].reverse()) {
             const b = canvasStore.getStrokeDisplayBounds(s);
-            // 完全框选：笔画必须完全在框内
             if (
               b.x >= box.x && b.x + b.width <= box.x + box.width
               && b.y >= box.y && b.y + b.height <= box.y + box.height
@@ -376,7 +450,7 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     return handle === 'n' || handle === 's' || handle === 'e' || handle === 'w';
   }
 
-  function startResize(strokeId: string, handle: string, cursor: string, event: MouseEvent) {
+  function startResize(strokeId: string, handle: string, cursor: string, event: MouseEvent | TouchEvent) {
     const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
     if (!stroke) return;
 
@@ -388,18 +462,43 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     resizeCursor.value = cursor;
     isResizing.value = true;
 
-    const pt = getSVGPoint(event);
+    let clientX: number;
+    let clientY: number;
+    if ('touches' in event) {
+      const touch = (event as TouchEvent).touches[0] || (event as TouchEvent).changedTouches[0];
+      clientX = touch!.clientX;
+      clientY = touch!.clientY;
+      event.preventDefault();
+    } else {
+      clientX = (event as MouseEvent).clientX;
+      clientY = (event as MouseEvent).clientY;
+    }
+
+    const pt = pointerDown(clientX, clientY);
     startPoint.value = pt;
     currentPoint.value = pt;
 
     window.addEventListener('mousemove', handleResizeMove);
     window.addEventListener('mouseup', handleResizeEnd);
+    window.addEventListener('touchmove', handleResizeTouchMove, { passive: false });
+    window.addEventListener('touchend', handleResizeTouchEnd);
   }
 
   function handleResizeMove(event: MouseEvent) {
+    handleResizePointerMove(event.clientX, event.clientY);
+  }
+
+  function handleResizeTouchMove(event: TouchEvent) {
+    if (event.touches.length !== 1) return;
+    event.preventDefault();
+    const touch = event.touches[0]!;
+    handleResizePointerMove(touch.clientX, touch.clientY);
+  }
+
+  function handleResizePointerMove(clientX: number, clientY: number) {
     if (!isResizing.value || !resizeOriginal.value || !resizeTargetId.value) return;
 
-    const pt = getSVGPoint(event);
+    const pt = pointerDown(clientX, clientY);
     currentPoint.value = pt;
 
     const orig = resizeOriginal.value;
@@ -408,7 +507,6 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
 
     let newBounds: { x: number; y: number; width: number; height: number };
 
-    // Shift 按下 + 边缘手柄：以原始中心点为中心，只改变单维度
     if (centerOut.value && isEdgeHandle(resizeHandle.value)) {
       const { x, y, width: w, height: h } = orig;
       switch (resizeHandle.value) {
@@ -439,7 +537,6 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
       return;
     }
 
-    // Shift 按下 + 角手柄：以原始中心点为基点对称缩放
     if (centerOut.value) {
       newBounds = applyModifiers(orig.type, origCenterX, origCenterY, pt.x, pt.y);
       canvasStore.updateStroke(resizeTargetId.value, newBounds);
@@ -447,7 +544,6 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     }
 
     if (isEdgeHandle(resizeHandle.value)) {
-      // 边缘手柄：只改变单维度，直接计算矩形bounds，不受 constrainRatio 影响
       const { x, y, width: w, height: h } = orig;
       switch (resizeHandle.value) {
         case 'n': {
@@ -480,6 +576,17 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
   }
 
   function handleResizeEnd() {
+    finishResize();
+  }
+
+  function handleResizeTouchEnd(event: TouchEvent) {
+    // Only finish when all touches are released
+    if (event.touches.length === 0) {
+      finishResize();
+    }
+  }
+
+  function finishResize() {
     isResizing.value = false;
     resizeTargetId.value = null;
     resizeHandle.value = '';
@@ -488,6 +595,8 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     canvasStore.dataVersion++;
     window.removeEventListener('mousemove', handleResizeMove);
     window.removeEventListener('mouseup', handleResizeEnd);
+    window.removeEventListener('touchmove', handleResizeTouchMove);
+    window.removeEventListener('touchend', handleResizeTouchEnd);
   }
 
   function getNormalizedStrokeBounds(stroke: { x: number; y: number; width: number; height: number; type: string }) {
@@ -512,6 +621,9 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
     onMouseDown,
     onMouseMove,
     onMouseUp,
+    onTouchStart,
+    onTouchMove,
+    onTouchEnd,
     getSVGPoint,
     updateModifiers,
     clearModifiers,

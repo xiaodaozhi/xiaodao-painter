@@ -14,7 +14,7 @@ const { t } = useI18n();
 const svgRef = ref<SVGSVGElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
 
-const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize } = useDrawing(
+const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize } = useDrawing(
   svgRef as Ref<SVGSVGElement | null>,
   wrapperRef as Ref<HTMLElement | null>,
 );
@@ -123,6 +123,9 @@ onUnmounted(() => {
         @mousedown="onMouseDown"
         @mousemove="onMouseMove"
         @mouseup="onMouseUp"
+        @touchstart.prevent="onTouchStart"
+        @touchmove.prevent="onTouchMove"
+        @touchend="onTouchEnd"
       >
         <!-- 画布背景区域 -->
         <defs>

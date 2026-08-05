@@ -391,12 +391,17 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
         canvasStore.clearSelection();
         return;
       }
-      const bbox = computeBoundingBox(pencilPoints.value);
+      // 存储时四舍五入为整数，降低存储空间；渲染时通过Q曲线实现平滑
+      const roundedPoints = pencilPoints.value.map((p) => ({
+        x: Math.round(p.x),
+        y: Math.round(p.y),
+      }));
+      const bbox = computeBoundingBox(roundedPoints);
       if (bbox.width < 3 && bbox.height < 3) {
         canvasStore.clearSelection();
         return;
       }
-      const stroke = canvasStore.buildStroke('pencil', bbox.x, bbox.y, bbox.width, bbox.height, pencilPoints.value);
+      const stroke = canvasStore.buildStroke('pencil', bbox.x, bbox.y, bbox.width, bbox.height, roundedPoints);
       canvasStore.addStroke(stroke);
       return;
     }

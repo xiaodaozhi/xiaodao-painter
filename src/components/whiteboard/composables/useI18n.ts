@@ -22,3 +22,13 @@ export function provideTheme(theme: 'light' | 'dark') {
 export function useTheme(): 'light' | 'dark' {
   return inject<'light' | 'dark'>(THEME_KEY, 'light');
 }
+
+export const ROOT_EL_KEY = Symbol('wb-root-el');
+
+export function provideRootEl(el: Readonly<import('vue').Ref<HTMLElement | null>>) {
+  provide(ROOT_EL_KEY, el);
+}
+
+export function useRootEl(): import('vue').Ref<HTMLElement | null> | null {
+  return inject<import('vue').Ref<HTMLElement | null> | null>(ROOT_EL_KEY, null);
+}

@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useCanvasStore } from './stores/canvas';
-import { useI18n } from './composables/useI18n';
+import { useI18n, useRootEl } from './composables/useI18n';
 
 const canvasStore = useCanvasStore();
 const { t } = useI18n();
+const rootEl = useRootEl();
+
+const paletteStyle = computed(() => {
+  if (!rootEl?.value) return {};
+  const rect = rootEl.value.getBoundingClientRect();
+  return {
+    left: rect.left + 60 + 'px',
+    bottom: window.innerHeight - rect.bottom + 9 + 'px',
+    position: 'fixed' as const,
+  };
+});
 
 const presetColors = [
   '#000000', '#ffffff', '#6b7280', '#d1d5db',
@@ -39,6 +51,7 @@ function onTransparentClick() {
     >
       <div
         class="color-palette"
+        :style="paletteStyle"
         @click.stop
       >
         <div class="palette-header">
@@ -142,10 +155,6 @@ function onTransparentClick() {
 }
 
 .color-palette {
-  position: fixed;
-  left: 60px;
-  bottom: 16px;
-  transform: none;
   background: var(--wb-surface);
   border: 1px solid var(--wb-border);
   border-radius: 8px;

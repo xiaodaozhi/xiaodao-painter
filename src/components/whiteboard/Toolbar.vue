@@ -3,11 +3,12 @@ import { computed, ref } from 'vue';
 import { useToolsStore } from './stores/tools';
 import { useCanvasStore } from './stores/canvas';
 import type { ToolType } from './types';
-import { useI18n } from './composables/useI18n';
+import { useI18n, useRootEl } from './composables/useI18n';
 
 const toolsStore = useToolsStore();
 const canvasStore = useCanvasStore();
 const { t } = useI18n();
+const rootEl = useRootEl();
 
 const toolTypes: ToolType[] = ['select', 'pan', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star'];
 
@@ -51,6 +52,18 @@ function confirmCanvasSize() {
 function cancelCanvasSize() {
   showCanvasSizePopover.value = false;
 }
+
+// Compute popover position relative to the root component's left/bottom edges
+const popoverStyle = computed(() => {
+  if (!rootEl?.value) return {};
+  const rect = rootEl.value.getBoundingClientRect();
+  // Popover: right of toolbar (52px + 12px) from rootEl left, 80px from rootEl bottom
+  return {
+    left: rect.left + 52 + 12 + 'px',
+    bottom: window.innerHeight - rect.bottom + 80 + 'px',
+    position: 'fixed' as const,
+  };
+});
 
 // Close popover on outside click
 function onPopoverBackdrop(e: MouseEvent) {
@@ -351,6 +364,7 @@ function onBgClick() {
         >
           <div
             class="canvas-size-popover"
+            :style="popoverStyle"
             @keydown="onPopoverKeydown"
           >
             <div class="popover-title">
@@ -602,9 +616,6 @@ function onBgClick() {
 
 /* Popover */
 .canvas-size-popover {
-  position: fixed;
-  left: calc(52px + 12px);
-  bottom: 80px;
   background: var(--wb-surface-toolbar);
   border: 1px solid var(--wb-border);
   border-radius: 8px;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { Locale } from './utils/i18n.ts';
-import { provideLocale } from './composables/useI18n';
+import { provideLocale, provideRootEl } from './composables/useI18n';
 import { useCanvasStore } from './stores/canvas';
 import { useToolsStore } from './stores/tools';
 import type { WhiteboardData } from './types';
@@ -46,6 +46,9 @@ const rootStyle = computed(() => {
 });
 
 provideLocale(resolvedLocale.value);
+
+const rootEl = ref<HTMLElement | null>(null);
+provideRootEl(rootEl);
 
 const canvasStore = useCanvasStore();
 const toolsStore = useToolsStore();
@@ -126,6 +129,7 @@ watch(
 
 <template>
   <div
+    ref="rootEl"
     :class="['wb-root', themeClass]"
     :style="rootStyle"
   >

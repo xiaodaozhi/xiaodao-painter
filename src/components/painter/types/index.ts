@@ -23,7 +23,7 @@ export interface CanvasConfig {
   height: number;
 }
 
-export interface WhiteboardData {
+export interface PainterData {
   strokes: Stroke[];
   canvasWidth: number;
   canvasHeight: number;

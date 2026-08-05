@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import type { Locale } from './utils/i18n.ts';
-import { provideLocale, provideRootEl } from './composables/useI18n';
-import { useCanvasStore } from './stores/canvas';
-import { useToolsStore } from './stores/tools';
-import type { WhiteboardData } from './types';
-import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './types';
+import { provideLocale, provideRootEl } from './composables/useI18n.ts';
+import { useCanvasStore } from './stores/canvas.ts';
+import { useToolsStore } from './stores/tools.ts';
+import type { PainterData } from './types/index.ts';
+import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './types/index.ts';
 import Toolbar from './Toolbar.vue';
 import Whiteboard from './Whiteboard.vue';
 import ColorPalette from './ColorPalette.vue';
@@ -14,7 +14,7 @@ import './style.css';
 const props = withDefaults(defineProps<{
   theme?: 'light' | 'dark';
   locale?: string;
-  modelValue?: WhiteboardData;
+  modelValue?: PainterData;
   width?: string | number;
   height?: string | number;
 }>(), {
@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [data: WhiteboardData];
+  'update:modelValue': [data: PainterData];
 }>();
 
 const resolvedLocale = computed<Locale>(() =>
@@ -59,7 +59,7 @@ toolsStore.reset();
 
 let suppressing = false;
 
-function cloneStrokes(strokes: WhiteboardData['strokes']): WhiteboardData['strokes'] {
+function cloneStrokes(strokes: PainterData['strokes']): PainterData['strokes'] {
   return strokes.map((stroke) => ({
     ...stroke,
     points: stroke.points.map((point) => ({ ...point })),

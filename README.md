@@ -1,4 +1,4 @@
-# xiaodao-whiteboard
+# xiaodao-painter
 
 A self-contained, embeddable SVG whiteboard component for Vue 3. Built with TypeScript, Pinia, and Vite.
 
@@ -31,10 +31,10 @@ npm install
 ```vue
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import WhiteboardApp from './components/whiteboard/Home.vue'
-import type { WhiteboardData } from './components/whiteboard/types'
+import PainterApp from './components/painter/Home.vue'
+import type { PainterData } from './components/painter/types'
 
-const data = ref<WhiteboardData>({
+const data = ref<PainterData>({
   strokes: [],
   canvasWidth: 800,
   canvasHeight: 600,
@@ -46,7 +46,7 @@ watch(data, (val) => {
 </script>
 
 <template>
-  <WhiteboardApp
+  <PainterApp
     v-model="data"
     theme="light"
     locale="zh-CN"
@@ -57,7 +57,7 @@ watch(data, (val) => {
 With explicit dimensions:
 
 ```html
-<WhiteboardApp
+<PainterApp
   v-model="data"
   theme="dark"
   locale="en-US"
@@ -70,7 +70,7 @@ With explicit dimensions:
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `modelValue` | `WhiteboardData` | `{ strokes: [], canvasWidth: 800, canvasHeight: 600 }` | Two-way bound drawing data |
+| `modelValue` | `PainterData` | `{ strokes: [], canvasWidth: 800, canvasHeight: 600 }` | Two-way bound drawing data |
 | `theme` | `'light' \| 'dark'` | `'light'` | UI theme |
 | `locale` | `string` | `'zh-CN'` | UI language (`'zh-CN'` or `'en-US'`) |
 | `width` | `string \| number` | `'100%'` | Component width (CSS value or px number) |
@@ -79,7 +79,7 @@ With explicit dimensions:
 ## Data Model
 
 ```ts
-interface WhiteboardData {
+interface PainterData {
   strokes: Stroke[]
   canvasWidth: number
   canvasHeight: number
@@ -115,8 +115,8 @@ interface Stroke {
 
 ```
 src/
-  components/whiteboard/
-    index.vue              # Public entry (props, v-model, theme sync)
+  components/painter/
+    Painter.vue            # Public entry (props, v-model, theme sync)
     Whiteboard.vue         # SVG canvas, keyboard shortcuts, pan/zoom centering
     Toolbar.vue            # Left toolbar (tools, canvas settings, color indicators)
     ColorPalette.vue       # Color picker popover

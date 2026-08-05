@@ -25,13 +25,19 @@ function openCanvasSizePopover() {
   showCanvasSizePopover.value = true;
 }
 
-const colorPickerValue = computed({
-  get: () => canvasBgInput.value === 'transparent' ? '#ffffff' : canvasBgInput.value,
-  set: (v: string) => { canvasBgInput.value = v; },
-});
+const hiddenColorInput = ref<HTMLInputElement | null>(null);
 
-function toggleTransparent() {
-  canvasBgInput.value = canvasBgInput.value === 'transparent' ? '#ffffff' : 'transparent';
+function selectSolidColor() {
+  hiddenColorInput.value?.click();
+}
+
+function onColorInputChange(e: Event) {
+  const target = e.target as HTMLInputElement;
+  canvasBgInput.value = target.value;
+}
+
+function selectTransparent() {
+  canvasBgInput.value = 'transparent';
 }
 
 function confirmCanvasSize() {
@@ -376,16 +382,27 @@ function onBgClick() {
             <div class="popover-field">
               <label class="popover-label">{{ t('canvasSize.background') }}</label>
               <div class="bg-color-row">
-                <input
-                  v-model="colorPickerValue"
-                  type="color"
-                  class="popover-color-input"
-                  :disabled="canvasBgInput === 'transparent'"
-                >
                 <button
-                  :class="['transparent-btn', { active: canvasBgInput === 'transparent' }]"
+                  :class="['bg-radio-btn', { active: canvasBgInput !== 'transparent' }]"
+                  :title="t('canvasSize.solidColor')"
+                  @click="selectSolidColor"
+                >
+                  <span
+                    class="bg-color-fill"
+                    :style="{ background: canvasBgInput === 'transparent' ? '#ffffff' : canvasBgInput }"
+                  />
+                  <input
+                    ref="hiddenColorInput"
+                    type="color"
+                    class="hidden-color-input"
+                    :value="canvasBgInput === 'transparent' ? '#ffffff' : canvasBgInput"
+                    @change="onColorInputChange"
+                  >
+                </button>
+                <button
+                  :class="['bg-radio-btn', 'bg-radio-btn--transparent', { active: canvasBgInput === 'transparent' }]"
                   :title="t('canvasSize.transparent')"
-                  @click="toggleTransparent"
+                  @click="selectTransparent"
                 >
                   <svg
                     width="14"
@@ -396,12 +413,7 @@ function onBgClick() {
                     stroke-width="2"
                     stroke-linecap="round"
                   >
-                    <line
-                      x1="5"
-                      y1="5"
-                      x2="19"
-                      y2="19"
-                    />
+                    <line x1="5" y1="5" x2="19" y2="19" />
                   </svg>
                 </button>
               </div>
@@ -649,22 +661,7 @@ function onBgClick() {
   gap: 4px;
 }
 
-.popover-color-input {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--wb-border);
-  border-radius: 4px;
-  cursor: pointer;
-  background: none;
-}
-
-.popover-color-input:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.transparent-btn {
+.bg-radio-btn {
   width: 28px;
   height: 28px;
   display: flex;
@@ -672,20 +669,41 @@ function onBgClick() {
   justify-content: center;
   border: 1px solid var(--wb-border);
   border-radius: 4px;
-  background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px;
+  background: var(--wb-surface);
   color: var(--wb-text-secondary);
   cursor: pointer;
   padding: 0;
   transition: all var(--wb-transition);
+  position: relative;
 }
 
-.transparent-btn:hover {
+.bg-radio-btn:hover {
   border-color: var(--wb-text-secondary);
 }
 
-.transparent-btn.active {
+.bg-radio-btn.active {
   border-color: var(--wb-accent);
   box-shadow: 0 0 0 1px var(--wb-accent);
+}
+
+.bg-radio-btn--transparent {
+  background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px;
+}
+
+.bg-color-fill {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid var(--wb-border);
+}
+
+.hidden-color-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
 }
 
 .popover-actions {

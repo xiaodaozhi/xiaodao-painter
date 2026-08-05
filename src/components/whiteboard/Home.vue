@@ -79,6 +79,9 @@ canvasStore.setCanvasSize(
   props.modelValue.canvasWidth ?? DEFAULT_CANVAS_WIDTH,
   props.modelValue.canvasHeight ?? DEFAULT_CANVAS_HEIGHT,
 );
+if (props.modelValue.canvasBackgroundColor != null) {
+  canvasStore.setCanvasBackgroundColor(props.modelValue.canvasBackgroundColor);
+}
 
 watch(
   () => props.modelValue.canvasWidth,
@@ -107,6 +110,7 @@ function emitUpdate() {
     strokes: canvasStore.strokes,
     canvasWidth: canvasStore.canvasWidth,
     canvasHeight: canvasStore.canvasHeight,
+    canvasBackgroundColor: canvasStore.canvasBackgroundColor,
   });
   setTimeout(() => {
     suppressing = false;
@@ -115,7 +119,7 @@ function emitUpdate() {
 
 // emit on structural changes (strokes count, canvas size) or explicit dataVersion bump
 watch(
-  () => `${canvasStore.strokes.length}|${canvasStore.canvasWidth}|${canvasStore.canvasHeight}|${canvasStore.dataVersion}`,
+  () => `${canvasStore.strokes.length}|${canvasStore.canvasWidth}|${canvasStore.canvasHeight}|${canvasStore.canvasBackgroundColor}|${canvasStore.dataVersion}`,
   () => { emitUpdate(); },
 );
 </script>

@@ -28,6 +28,7 @@ const zhCN: Record<string, string> = {
   'canvasSize.cancel': '取消',
   'canvasSize.background': '背景',
   'canvasSize.transparent': '透明',
+  'canvasSize.solidColor': '纯色',
 };
 
 const enUS: Record<string, string> = {
@@ -58,6 +59,7 @@ const enUS: Record<string, string> = {
   'canvasSize.cancel': 'Cancel',
   'canvasSize.background': 'Background',
   'canvasSize.transparent': 'Transparent',
+  'canvasSize.solidColor': 'Solid Color',
 };
 
 const locales: Record<Locale, Record<string, string>> = {

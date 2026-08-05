@@ -27,6 +27,7 @@ export interface WhiteboardData {
   strokes: Stroke[];
   canvasWidth: number;
   canvasHeight: number;
+  canvasBackgroundColor?: string;
 }
 
 export const DEFAULT_CANVAS_WIDTH = 800;

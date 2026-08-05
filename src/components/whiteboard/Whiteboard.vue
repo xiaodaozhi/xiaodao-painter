@@ -11,11 +11,9 @@ import SelectionOverlay from './SelectionOverlay.vue';
 const canvasStore = useCanvasStore();
 const toolsStore = useToolsStore();
 const { t } = useI18n();
-const svgRef = ref<SVGSVGElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
 
 const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize } = useDrawing(
-  svgRef as Ref<SVGSVGElement | null>,
   wrapperRef as Ref<HTMLElement | null>,
 );
 
@@ -164,6 +162,12 @@ onUnmounted(() => {
   <div
     class="whiteboard"
     @contextmenu.prevent
+    @mousedown="onMouseDown"
+    @mousemove="onMouseMove"
+    @mouseup="onMouseUp"
+    @touchstart.prevent="(e: TouchEvent) => { onTouchStart(e); handleTouchStartForPinch(e); }"
+    @touchmove.prevent="(e: TouchEvent) => { onTouchMove(e); handleTouchMoveForPinch(e); }"
+    @touchend="(e: TouchEvent) => { onTouchEnd(e); handleTouchEndForPinch(e); }"
   >
     <div
       ref="wrapperRef"
@@ -176,18 +180,11 @@ onUnmounted(() => {
       }"
     >
       <svg
-        ref="svgRef"
         class="canvas"
         :viewBox="canvasStore.viewBox"
         width="100%"
         height="100%"
         :style="{ cursor: cursorStyle }"
-        @mousedown="onMouseDown"
-        @mousemove="onMouseMove"
-        @mouseup="onMouseUp"
-        @touchstart.prevent="(e: TouchEvent) => { onTouchStart(e); handleTouchStartForPinch(e); }"
-        @touchmove.prevent="(e: TouchEvent) => { onTouchMove(e); handleTouchMoveForPinch(e); }"
-        @touchend="(e: TouchEvent) => { onTouchEnd(e); handleTouchEndForPinch(e); }"
       >
         <!-- 画布背景区域 -->
         <defs>

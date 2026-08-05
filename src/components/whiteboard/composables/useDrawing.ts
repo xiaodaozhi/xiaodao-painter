@@ -5,7 +5,7 @@ import { useCanvasStore } from '../stores/canvas';
 import { useToolsStore } from '../stores/tools';
 import { hitTestStroke, computeBoundingBox } from '../utils/geometry';
 
-export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref<HTMLElement | null>) {
+export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
   const canvasStore = useCanvasStore();
   const toolsStore = useToolsStore();
 
@@ -143,49 +143,31 @@ export function useDrawing(svgRef: Ref<SVGSVGElement | null>, whiteboardRef: Ref
 
   /**
    * Convert mouse event coordinates to SVG canvas coordinates.
+   * Uses the same manual calculation as pointerDown for cross-browser consistency.
    */
   function getSVGPoint(event: MouseEvent): Point {
-    const svg = svgRef.value;
-    if (!svg) return { x: 0, y: 0 };
-    const pt = svg.createSVGPoint();
-    pt.x = event.clientX;
-    pt.y = event.clientY;
-    const ctm = svg.getScreenCTM();
-    if (ctm) {
-      const transformed = pt.matrixTransform(ctm.inverse());
-      return { x: transformed.x, y: transformed.y };
-    }
-    // Fallback: manual calculation with container offset
-    const container = whiteboardRef.value;
-    const rect = container?.getBoundingClientRect() ?? svg.getBoundingClientRect();
-    const scaleX = canvasStore.canvasWidth * canvasStore.zoomLevel / (rect.width || 1);
-    const scaleY = canvasStore.canvasHeight * canvasStore.zoomLevel / (rect.height || 1);
-    return {
-      x: (event.clientX - rect.left + (container?.scrollLeft ?? 0)) / scaleX,
-      y: (event.clientY - rect.top + (container?.scrollTop ?? 0)) / scaleY,
-    };
+    return pointerDown(event.clientX, event.clientY);
   }
 
   // --- Shared pointer coordinate helpers ---
 
+  /**
+   * Convert client (screen) coordinates to SVG canvas coordinates.
+   * Uses manual calculation from the wrapper's bounding rect + zoom level
+   * instead of getScreenCTM(), which is unreliable on iOS Safari when
+   * ancestor elements use CSS transforms with will-change.
+   */
   function pointerDown(clientX: number, clientY: number) {
-    const svg = svgRef.value;
-    if (!svg) return { x: 0, y: 0 };
-    const pt = svg.createSVGPoint();
-    pt.x = clientX;
-    pt.y = clientY;
-    const ctm = svg.getScreenCTM();
-    if (ctm) {
-      const transformed = pt.matrixTransform(ctm.inverse());
-      return { x: transformed.x, y: transformed.y };
-    }
     const container = whiteboardRef.value;
-    const rect = container?.getBoundingClientRect() ?? svg.getBoundingClientRect();
-    const scaleX = canvasStore.canvasWidth * canvasStore.zoomLevel / (rect.width || 1);
-    const scaleY = canvasStore.canvasHeight * canvasStore.zoomLevel / (rect.height || 1);
+    if (!container) return { x: 0, y: 0 };
+    const rect = container.getBoundingClientRect();
+    // rect already reflects the CSS transform (pan + zoom).
+    // Dividing by zoomLevel un-scales to SVG coordinate space.
+    // The viewBox matches canvasWidth/canvasHeight 1:1 with the wrapper,
+    // so no additional viewBox mapping is needed.
     return {
-      x: (clientX - rect.left + (container?.scrollLeft ?? 0)) / scaleX,
-      y: (clientY - rect.top + (container?.scrollTop ?? 0)) / scaleY,
+      x: (clientX - rect.left) / canvasStore.zoomLevel,
+      y: (clientY - rect.top) / canvasStore.zoomLevel,
     };
   }
 

@@ -147,4 +147,4 @@ npm run preview # Preview production build
 
 ## License
 
-Private
+MIT

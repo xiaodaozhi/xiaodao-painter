@@ -59,6 +59,13 @@ toolsStore.reset();
 
 let suppressing = false;
 
+function cloneStrokes(strokes: WhiteboardData['strokes']): WhiteboardData['strokes'] {
+  return strokes.map((stroke) => ({
+    ...stroke,
+    points: stroke.points.map((point) => ({ ...point })),
+  }));
+}
+
 watch(
   () => props.theme,
   (newTheme, oldTheme) => {
@@ -110,7 +117,7 @@ watch(
 function emitUpdate() {
   suppressing = true;
   emit('update:modelValue', {
-    strokes: canvasStore.strokes,
+    strokes: cloneStrokes(canvasStore.strokes),
     canvasWidth: canvasStore.canvasWidth,
     canvasHeight: canvasStore.canvasHeight,
     canvasBackgroundColor: canvasStore.canvasBackgroundColor,

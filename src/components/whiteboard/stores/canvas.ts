@@ -301,8 +301,11 @@ export const useCanvasStore = defineStore('canvas', () => {
   function syncFromParent(data: Stroke[]) {
     if (syncing) return;
     syncing = true;
-    strokes.value = Array.isArray(data) ? [...data] : [];
-    selectedStrokeIds.value = new Set();
+    strokes.value = Array.isArray(data)
+      ? data.map((s) => ({ ...s, points: s.points.map((p) => ({ ...p })) }))
+      : [];
+    const availableIds = new Set(strokes.value.map((s) => s.id));
+    selectedStrokeIds.value = new Set([...selectedStrokeIds.value].filter((id) => availableIds.has(id)));
     setTimeout(() => {
       syncing = false;
     }, 0);

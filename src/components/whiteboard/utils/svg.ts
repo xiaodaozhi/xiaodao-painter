@@ -4,19 +4,19 @@ import { starVertices, triangleVertices } from './geometry';
 export function pencilToPathD(points: Point[]): string {
   if (points.length === 0) return '';
   if (points.length === 1) {
-    return `M ${points[0].x} ${points[0].y}`;
+    return `M ${points[0]!.x} ${points[0]!.y}`;
   }
   if (points.length === 2) {
-    return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+    return `M ${points[0]!.x} ${points[0]!.y} L ${points[1]!.x} ${points[1]!.y}`;
   }
 
-  let d = `M ${points[0].x} ${points[0].y}`;
+  let d = `M ${points[0]!.x} ${points[0]!.y}`;
   for (let i = 1; i < points.length - 1; i++) {
-    const xc = (points[i].x + points[i + 1].x) / 2;
-    const yc = (points[i].y + points[i + 1].y) / 2;
-    d += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
+    const xc = (points[i]!.x + points[i + 1]!.x) / 2;
+    const yc = (points[i]!.y + points[i + 1]!.y) / 2;
+    d += ` Q ${points[i]!.x} ${points[i]!.y} ${xc} ${yc}`;
   }
-  d += ` L ${points[points.length - 1].x} ${points[points.length - 1].y}`;
+  d += ` L ${points[points.length - 1]!.x} ${points[points.length - 1]!.y}`;
   return d;
 }
 

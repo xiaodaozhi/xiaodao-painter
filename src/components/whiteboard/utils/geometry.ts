@@ -47,8 +47,8 @@ export function pointToSegmentDistance(p: Point, a: Point, b: Point): number {
 export function pointInPolygon(p: Point, polygon: Point[]): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i].x, yi = polygon[i].y;
-    const xj = polygon[j].x, yj = polygon[j].y;
+    const xi = polygon[i]!.x, yi = polygon[i]!.y;
+    const xj = polygon[j]!.x, yj = polygon[j]!.y;
     if ((yi > p.y) !== (yj > p.y) && p.x < ((xj - xi) * (p.y - yi)) / (yj - yi) + xi) {
       inside = !inside;
     }
@@ -83,7 +83,7 @@ export function hitTestStroke(p: Point, stroke: Stroke): boolean {
     case 'pencil': {
       if (points.length < 2) return false;
       for (let i = 0; i < points.length - 1; i++) {
-        if (pointToSegmentDistance(p, points[i], points[i + 1]) < HIT_THRESHOLD) return true;
+        if (pointToSegmentDistance(p, points[i]!, points[i + 1]!) < HIT_THRESHOLD) return true;
       }
       return false;
     }

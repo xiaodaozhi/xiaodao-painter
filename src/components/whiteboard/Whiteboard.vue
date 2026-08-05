@@ -185,9 +185,9 @@ onUnmounted(() => {
         @mousedown="onMouseDown"
         @mousemove="onMouseMove"
         @mouseup="onMouseUp"
-        @touchstart.prevent="(e) => { onTouchStart(e); handleTouchStartForPinch(e); }"
-        @touchmove.prevent="(e) => { onTouchMove(e); handleTouchMoveForPinch(e); }"
-        @touchend="(e) => { onTouchEnd(e); handleTouchEndForPinch(e); }"
+        @touchstart.prevent="(e: TouchEvent) => { onTouchStart(e); handleTouchStartForPinch(e); }"
+        @touchmove.prevent="(e: TouchEvent) => { onTouchMove(e); handleTouchMoveForPinch(e); }"
+        @touchend="(e: TouchEvent) => { onTouchEnd(e); handleTouchEndForPinch(e); }"
       >
         <!-- 画布背景区域 -->
         <defs>

@@ -87,6 +87,30 @@ export const useCanvasStore = defineStore('canvas', () => {
     }, 1500);
   }
 
+  /**
+   * Continuously set zoom level (for pinch gestures), clamping to the
+   * ZOOM_STEPS range and keeping the given screen point stationary.
+   */
+  function continuousZoomAt(screenX: number, screenY: number, newZoom: number) {
+    const minZoom = ZOOM_STEPS[0]!;
+    const maxZoom = ZOOM_STEPS[ZOOM_STEPS.length - 1]!;
+    newZoom = Math.max(minZoom, Math.min(maxZoom, newZoom));
+
+    const cur = zoomLevel.value;
+    const canvasX = (screenX - panX.value) / cur;
+    const canvasY = (screenY - panY.value) / cur;
+
+    panX.value = screenX - canvasX * newZoom;
+    panY.value = screenY - canvasY * newZoom;
+    zoomLevel.value = newZoom;
+
+    showZoomIndicator.value = true;
+    if (zoomIndicatorTimer) clearTimeout(zoomIndicatorTimer);
+    zoomIndicatorTimer = setTimeout(() => {
+      showZoomIndicator.value = false;
+    }, 1500);
+  }
+
   function getZoomPercent(): number {
     return Math.round(zoomLevel.value * 100);
   }
@@ -431,6 +455,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     setPan,
     setCanvasSize,
     zoomAt,
+    continuousZoomAt,
     getZoomPercent,
     dataVersion,
     theme,

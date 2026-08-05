@@ -65,6 +65,54 @@ function handleBlur() {
   clearModifiers();
 }
 
+// 双指缩放状态
+const pinchStartDist = ref(0);
+const pinchStartZoom = ref(1);
+const pinchCenterX = ref(0);
+const pinchCenterY = ref(0);
+
+function getPinchDist(touches: TouchList): number {
+  const dx = touches[0]!.clientX - touches[1]!.clientX;
+  const dy = touches[0]!.clientY - touches[1]!.clientY;
+  return Math.hypot(dx, dy);
+}
+
+function handleTouchStartForPinch(event: TouchEvent) {
+  if (toolsStore.activeTool !== 'zoom') return;
+  if (event.touches.length === 2) {
+    pinchStartDist.value = getPinchDist(event.touches);
+    pinchStartZoom.value = canvasStore.zoomLevel;
+    pinchCenterX.value = (event.touches[0]!.clientX + event.touches[1]!.clientX) / 2;
+    pinchCenterY.value = (event.touches[0]!.clientY + event.touches[1]!.clientY) / 2;
+  }
+}
+
+function handleTouchMoveForPinch(event: TouchEvent) {
+  if (toolsStore.activeTool !== 'zoom') return;
+  if (event.touches.length === 2 && pinchStartDist.value > 0) {
+    const dist = getPinchDist(event.touches);
+    const scale = dist / pinchStartDist.value;
+    const newZoom = pinchStartZoom.value * scale;
+    // 获取 wrapper 的屏幕坐标，计算相对于 wrapper 的 pinch 中心点
+    const wrapper = wrapperRef.value;
+    if (wrapper) {
+      const rect = wrapper.getBoundingClientRect();
+      canvasStore.continuousZoomAt(
+        pinchCenterX.value - rect.left,
+        pinchCenterY.value - rect.top,
+        newZoom,
+      );
+    }
+  }
+}
+
+function handleTouchEndForPinch(event: TouchEvent) {
+  if (toolsStore.activeTool !== 'zoom') return;
+  if (event.touches.length < 2) {
+    pinchStartDist.value = 0;
+  }
+}
+
 let centerObserver: ResizeObserver | null = null;
 
 function centerCanvas() {
@@ -123,9 +171,9 @@ onUnmounted(() => {
         @mousedown="onMouseDown"
         @mousemove="onMouseMove"
         @mouseup="onMouseUp"
-        @touchstart.prevent="onTouchStart"
-        @touchmove.prevent="onTouchMove"
-        @touchend="onTouchEnd"
+        @touchstart.prevent="(e) => { onTouchStart(e); handleTouchStartForPinch(e); }"
+        @touchmove.prevent="(e) => { onTouchMove(e); handleTouchMoveForPinch(e); }"
+        @touchend="(e) => { onTouchEnd(e); handleTouchEndForPinch(e); }"
       >
         <!-- 画布背景区域 -->
         <defs>

@@ -26,6 +26,20 @@ const cursorStyle = computed(() => {
   return toolsStore.activeTool === 'select' ? 'default' : 'crosshair';
 });
 
+const isZoomActive = computed(() => toolsStore.activeTool === 'zoom');
+
+function zoomIn() {
+  const el = wrapperRef.value?.parentElement;
+  if (!el) return;
+  canvasStore.zoomAt(el.clientWidth / 2, el.clientHeight / 2, 1.1);
+}
+
+function zoomOut() {
+  const el = wrapperRef.value?.parentElement;
+  if (!el) return;
+  canvasStore.zoomAt(el.clientWidth / 2, el.clientHeight / 2, 0.9);
+}
+
 function handleKeydown(e: KeyboardEvent) {
   const ctrl = e.ctrlKey || e.metaKey;
 
@@ -399,15 +413,65 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <!-- 缩放指示器 -->
-    <Transition name="zoom-fade">
-      <div
-        v-if="canvasStore.showZoomIndicator"
-        class="zoom-indicator"
+    <!-- 缩放控制器：选择放大镜工具时常驻显示，否则临时显示 -->
+    <div
+      v-if="isZoomActive || canvasStore.showZoomIndicator"
+      class="zoom-control"
+    >
+      <button
+        v-if="isZoomActive"
+        class="zoom-btn"
+        :title="t('zoom.zoomOut')"
+        @click="zoomOut"
       >
-        {{ t('zoom.label').replace('{percent}', String(canvasStore.getZoomPercent())) }}
-      </div>
-    </Transition>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
+        </svg>
+      </button>
+      <span class="zoom-percent">{{ canvasStore.getZoomPercent() }}%</span>
+      <button
+        v-if="isZoomActive"
+        class="zoom-btn"
+        :title="t('zoom.zoomIn')"
+        @click="zoomIn"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <line
+            x1="12"
+            y1="5"
+            x2="12"
+            y2="19"
+          />
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -477,27 +541,45 @@ onUnmounted(() => {
   margin: 2px 4px;
 }
 
-.zoom-indicator {
+.zoom-control {
   position: absolute;
   bottom: 16px;
   right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
-  padding: 4px 12px;
+  padding: 4px 6px;
   border-radius: 6px;
   font-size: 13px;
   font-family: system-ui, sans-serif;
-  pointer-events: none;
   z-index: 100;
 }
 
-.zoom-fade-enter-active,
-.zoom-fade-leave-active {
-  transition: opacity 0.25s ease;
+.zoom-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
 }
 
-.zoom-fade-enter-from,
-.zoom-fade-leave-to {
-  opacity: 0;
+.zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.zoom-percent {
+  min-width: 40px;
+  text-align: center;
+  user-select: none;
 }
 </style>

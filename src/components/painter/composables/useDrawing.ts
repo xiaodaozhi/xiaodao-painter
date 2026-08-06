@@ -385,6 +385,7 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
       }
       const stroke = canvasStore.buildStroke('pencil', bbox.x, bbox.y, bbox.width, bbox.height, roundedPoints);
       canvasStore.addStroke(stroke);
+      toolsStore.setTool('select');
       return;
     }
 
@@ -399,6 +400,7 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
 
     const stroke = canvasStore.buildStroke(type, bbox.x, bbox.y, bbox.width, bbox.height, []);
     canvasStore.addStroke(stroke);
+    toolsStore.setTool('select');
   }
 
   function updateModifiers(e: KeyboardEvent) {

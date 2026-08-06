@@ -18,6 +18,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   // Text tool state
   const textColor = ref('#000000');
   const editingTextId = ref<string | null>(null);
+  const hoveredTextId = ref<string | null>(null);
 
   // Canvas size and pan/zoom
   const canvasWidth = ref(DEFAULT_CANVAS_WIDTH);
@@ -419,6 +420,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     dataVersion.value = 0;
     textColor.value = '#000000';
     editingTextId.value = null;
+    hoveredTextId.value = null;
     canvasWidth.value = DEFAULT_CANVAS_WIDTH;
     canvasHeight.value = DEFAULT_CANVAS_HEIGHT;
     panX.value = 0;
@@ -498,6 +500,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     theme,
     textColor,
     editingTextId,
+    hoveredTextId,
     reset,
   };
 });

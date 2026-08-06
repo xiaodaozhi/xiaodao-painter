@@ -37,7 +37,10 @@ const cursorStyle = computed(() => {
   if (isResizing.value) return resizeCursor.value;
   if (toolsStore.activeTool === 'pan') return 'grab';
   if (toolsStore.activeTool === 'zoom') return 'zoom-in';
-  if (toolsStore.activeTool === 'text') return 'text';
+  if (toolsStore.activeTool === 'text') {
+    if (canvasStore.hoveredTextId) return 'pointer';
+    return 'text';
+  }
   return toolsStore.activeTool === 'select' ? 'default' : 'crosshair';
 });
 
@@ -98,6 +101,10 @@ function handleTextDblClick(strokeId: string) {
   if (toolsStore.activeTool === 'text' || toolsStore.activeTool === 'select') {
     startEditText(strokeId);
   }
+}
+
+function handleMouseLeave() {
+  canvasStore.hoveredTextId = null;
 }
 
 function zoomIn() {
@@ -292,6 +299,7 @@ onUnmounted(() => {
         width="100%"
         height="100%"
         :style="{ cursor: cursorStyle }"
+        @mouseleave="handleMouseLeave"
       >
         <!-- 画布背景区域 -->
         <defs>
@@ -438,6 +446,20 @@ onUnmounted(() => {
           stroke="#6366f1"
           stroke-width="1"
           stroke-dasharray="6 4"
+        />
+
+        <!-- Text tool hover outline -->
+        <rect
+          v-if="canvasStore.hoveredTextId"
+          :x="(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.x ?? 0) - 4"
+          :y="(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.y ?? 0) - 4"
+          :width="Math.max(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.width ?? 0, 40) + 8"
+          :height="Math.max(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.height ?? 0, 20) + 8"
+          fill="none"
+          stroke="#6366f1"
+          stroke-width="1"
+          stroke-dasharray="4 3"
+          pointer-events="none"
         />
       </svg>
     </div>

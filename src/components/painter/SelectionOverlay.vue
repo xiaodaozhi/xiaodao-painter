@@ -33,9 +33,11 @@ const lineHandlePositions = computed(() => {
   ];
 });
 
+const isText = computed(() => props.stroke.type === 'text');
+
 const nonLineHandlePositions = computed(() => {
   const b = box.value;
-  return [
+  const all = [
     { name: 'nw', cx: b.x, cy: b.y, cursor: 'nwse-resize' },
     { name: 'n',  cx: b.x + b.w / 2, cy: b.y, cursor: 'ns-resize' },
     { name: 'ne', cx: b.x + b.w, cy: b.y, cursor: 'nesw-resize' },
@@ -45,6 +47,10 @@ const nonLineHandlePositions = computed(() => {
     { name: 'sw', cx: b.x, cy: b.y + b.h, cursor: 'nesw-resize' },
     { name: 'w',  cx: b.x, cy: b.y + b.h / 2, cursor: 'ew-resize' },
   ];
+  if (isText.value) {
+    return all.filter((h) => h.name !== 'n' && h.name !== 's');
+  }
+  return all;
 });
 
 function onHandleStart(handle: string, cursor: string, e: MouseEvent | TouchEvent) {

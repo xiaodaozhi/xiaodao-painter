@@ -688,12 +688,12 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
       newBounds = applyModifiers(orig.type, anchor.x, anchor.y, pt.x, pt.y);
     }
 
-    // For text strokes, ensure minimum height and mark as fixed width
+    // For text strokes, only x and width are resizable (height is always auto)
     if (resizeOriginal.value?.type === 'text') {
       if (newBounds.width < 1) newBounds.width = 1;
-      if (newBounds.height < 1) newBounds.height = 1;
       canvasStore.updateStroke(resizeTargetId.value, {
-        ...newBounds,
+        x: newBounds.x,
+        width: newBounds.width,
         textAutoWidth: false,
       });
       return;

@@ -254,50 +254,25 @@ function setTextEditRef(strokeId: string) {
   return (el: any) => {
     if (el) {
       textEditRefs.value.set(strokeId, el as HTMLDivElement);
-      // Measure text elements once DOM renders
-      const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
-      if (!stroke) return;
-      nextTick(() => {
-        if (stroke.textAutoWidth) {
-          applyAutoWidth(strokeId, el as HTMLDivElement);
-        } else {
-          clampTextMinSize(strokeId, el as HTMLDivElement);
-        }
-      });
+      nextTick(() => syncTextSizeFromDOM(strokeId, el as HTMLDivElement));
     } else {
       textEditRefs.value.delete(strokeId);
     }
   };
 }
 
-function applyAutoWidth(strokeId: string, el: HTMLDivElement) {
+function syncTextSizeFromDOM(strokeId: string, el: HTMLDivElement) {
   const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
-  if (!stroke || !stroke.textAutoWidth) return;
-  const bbox = el.getBoundingClientRect();
-  const w = Math.max(bbox.width / canvasStore.zoomLevel, 0);
-  const h = Math.max(bbox.height / canvasStore.zoomLevel, 0);
-  if (Math.abs(stroke.width - w) < 0.5 && Math.abs(stroke.height - h) < 0.5) return;
-  canvasStore.updateStroke(strokeId, { width: w, height: h });
-}
-
-function clampTextMinSize(strokeId: string, el: HTMLDivElement) {
-  const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
-  if (!stroke || stroke.textAutoWidth) return;
-  const contentW = el.scrollWidth / canvasStore.zoomLevel;
-  const contentH = el.scrollHeight / canvasStore.zoomLevel;
-  let newW = stroke.width;
-  let newH = stroke.height;
-  let changed = false;
-  if (newW < contentW) {
-    newW = contentW;
-    changed = true;
-  }
-  if (newH < contentH) {
-    newH = contentH;
-    changed = true;
-  }
-  if (changed) {
-    canvasStore.updateStroke(strokeId, { width: newW, height: newH });
+  if (!stroke) return;
+  const w = Math.max(el.scrollWidth / canvasStore.zoomLevel, stroke.fontSize ?? DEFAULT_FONT_SIZE);
+  const h = Math.max(el.scrollHeight / canvasStore.zoomLevel, stroke.fontSize ?? DEFAULT_FONT_SIZE);
+  if (stroke.textAutoWidth) {
+    if (Math.abs(stroke.width - w) < 0.5 && Math.abs(stroke.height - h) < 0.5) return;
+    canvasStore.updateStroke(strokeId, { width: w, height: h });
+  } else {
+    const clampedW = Math.max(stroke.width, w);
+    if (Math.abs(stroke.width - clampedW) < 0.5 && Math.abs(stroke.height - h) < 0.5) return;
+    canvasStore.updateStroke(strokeId, { width: clampedW, height: h });
   }
 }
 
@@ -441,7 +416,7 @@ onUnmounted(() => {
               :x="stroke.x"
               :y="stroke.y"
               :width="stroke.textAutoWidth ? 1 : (stroke.width || 1)"
-              :height="stroke.textAutoWidth ? 1 : (stroke.height || 1)"
+              :height="1"
               :style="{ overflow: 'visible', pointerEvents: 'none' }"
             >
               <div

@@ -208,9 +208,14 @@ export const useCanvasStore = defineStore('canvas', () => {
 
   function updateStroke(id: string, changes: Partial<Stroke>) {
     const idx = strokes.value.findIndex((s) => s.id === id);
-    if (idx !== -1) {
-      strokes.value[idx]! = { ...strokes.value[idx]!, ...changes };
-    }
+    if (idx === -1) return;
+    const rounded = { ...changes };
+    if (rounded.x !== undefined) rounded.x = Math.round(rounded.x);
+    if (rounded.y !== undefined) rounded.y = Math.round(rounded.y);
+    if (rounded.width !== undefined) rounded.width = Math.round(rounded.width);
+    if (rounded.height !== undefined) rounded.height = Math.round(rounded.height);
+    if (rounded.points) rounded.points = rounded.points.map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+    strokes.value[idx]! = { ...strokes.value[idx]!, ...rounded };
   }
 
   function deleteSelectedStrokes() {
@@ -387,11 +392,11 @@ export const useCanvasStore = defineStore('canvas', () => {
     return {
       id: createStrokeId(),
       type,
-      x,
-      y,
-      width,
-      height,
-      points,
+      x: Math.round(x),
+      y: Math.round(y),
+      width: Math.round(width),
+      height: Math.round(height),
+      points: points.map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) })),
       strokeColor: foregroundColor.value,
       fillColor: type === 'pencil' || type === 'line' ? 'none' : backgroundColor.value,
       strokeWidth: strokeWidth.value,

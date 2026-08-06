@@ -668,10 +668,12 @@ onUnmounted(() => {
     <div
       v-if="singleSelectedText"
       class="text-format-control"
+      @touchstart.stop.prevent
     >
       <button
         class="font-size-btn"
         @mousedown.stop.prevent="changeFontSize(-1)"
+        @touchstart.stop.prevent="changeFontSize(-1)"
       >
         <svg
           width="12"
@@ -694,6 +696,7 @@ onUnmounted(() => {
       <button
         class="font-size-btn"
         @mousedown.stop.prevent="changeFontSize(1)"
+        @touchstart.stop.prevent="changeFontSize(1)"
       >
         <svg
           width="12"
@@ -723,6 +726,7 @@ onUnmounted(() => {
         :class="['text-align-btn', { active: singleSelectedText.textAlign === 'left' || !singleSelectedText.textAlign }]"
         title="左对齐"
         @mousedown.stop.prevent="setTextAlign('left')"
+        @touchstart.stop.prevent="setTextAlign('left')"
       >
         <svg
           width="14"
@@ -763,6 +767,7 @@ onUnmounted(() => {
         :class="['text-align-btn', { active: singleSelectedText.textAlign === 'center' }]"
         title="居中"
         @mousedown.stop.prevent="setTextAlign('center')"
+        @touchstart.stop.prevent="setTextAlign('center')"
       >
         <svg
           width="14"

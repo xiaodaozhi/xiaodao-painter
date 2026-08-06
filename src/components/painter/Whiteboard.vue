@@ -724,7 +724,7 @@ onUnmounted(() => {
       <div class="text-align-separator" />
       <button
         :class="['text-align-btn', { active: singleSelectedText.textAlign === 'left' || !singleSelectedText.textAlign }]"
-        title="左对齐"
+        :title="t('textAlign.left')"
         @mousedown.stop.prevent="setTextAlign('left')"
         @touchstart.stop.prevent="setTextAlign('left')"
       >
@@ -765,7 +765,7 @@ onUnmounted(() => {
       </button>
       <button
         :class="['text-align-btn', { active: singleSelectedText.textAlign === 'center' }]"
-        title="居中"
+        :title="t('textAlign.center')"
         @mousedown.stop.prevent="setTextAlign('center')"
         @touchstart.stop.prevent="setTextAlign('center')"
       >
@@ -806,8 +806,9 @@ onUnmounted(() => {
       </button>
       <button
         :class="['text-align-btn', { active: singleSelectedText.textAlign === 'right' }]"
-        title="右对齐"
+        :title="t('textAlign.right')"
         @mousedown.stop.prevent="setTextAlign('right')"
+        @touchstart.stop.prevent="setTextAlign('right')"
       >
         <svg
           width="14"

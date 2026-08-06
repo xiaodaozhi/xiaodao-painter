@@ -33,6 +33,9 @@ const zhCN: Record<string, string> = {
   'canvasSize.background': '背景',
   'canvasSize.transparent': '透明',
   'canvasSize.solidColor': '纯色',
+  'textAlign.left': '左对齐',
+  'textAlign.center': '居中',
+  'textAlign.right': '右对齐',
 };
 
 const enUS: Record<string, string> = {
@@ -68,6 +71,9 @@ const enUS: Record<string, string> = {
   'canvasSize.background': 'Background',
   'canvasSize.transparent': 'Transparent',
   'canvasSize.solidColor': 'Solid Color',
+  'textAlign.left': 'Align Left',
+  'textAlign.center': 'Align Center',
+  'textAlign.right': 'Align Right',
 };
 
 const locales: Record<Locale, Record<string, string>> = {

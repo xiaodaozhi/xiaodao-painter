@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useToolsStore } from './stores/tools';
 import { useCanvasStore } from './stores/canvas';
 import type { ToolType } from './types';
@@ -9,6 +9,45 @@ const toolsStore = useToolsStore();
 const canvasStore = useCanvasStore();
 const { t } = useI18n();
 const rootEl = useRootEl();
+
+// Adaptive scrolling for tool buttons
+const toolsScrollRef = ref<HTMLElement | null>(null);
+const canScrollUp = ref(false);
+const canScrollDown = ref(false);
+const SCROLL_STEP = 42; // tool-btn height (40px) + gap (2px)
+
+function checkScroll() {
+  const el = toolsScrollRef.value;
+  if (!el) return;
+  canScrollUp.value = el.scrollTop > 0;
+  canScrollDown.value = el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+}
+
+function scrollUp() {
+  const el = toolsScrollRef.value;
+  if (!el) return;
+  el.scrollBy({ top: -SCROLL_STEP, behavior: 'smooth' });
+}
+
+function scrollDown() {
+  const el = toolsScrollRef.value;
+  if (!el) return;
+  el.scrollBy({ top: SCROLL_STEP, behavior: 'smooth' });
+}
+
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+  resizeObserver = new ResizeObserver(() => checkScroll());
+  if (toolsScrollRef.value) {
+    resizeObserver.observe(toolsScrollRef.value);
+  }
+  checkScroll();
+});
+
+onUnmounted(() => {
+  resizeObserver?.disconnect();
+});
 
 const toolTypes: ToolType[] = ['select', 'pan', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star', 'text'];
 
@@ -150,227 +189,273 @@ function onBgClick() {
 
 <template>
   <div class="toolbar">
-    <div class="tool-group">
-      <button
-        v-for="type in toolTypes"
-        :key="type"
-        :class="['tool-btn', { active: toolsStore.activeTool === type }]"
-        :title="t(`tool.${type}`)"
-        @click="toolsStore.setTool(type)"
+    <!-- Scroll up button -->
+    <button
+      v-if="canScrollUp"
+      class="scroll-btn scroll-up"
+      @click="scrollUp"
+    >
+      <svg
+        class="scroll-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       >
-        <!-- Select: 镂空鼠标指针 -->
-        <svg
-          v-if="type === 'select'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M4.5 3.5l5.5 15 2.5-6 6-2.5z" />
-        </svg>
-        <!-- Pan: 十字四方向箭头 -->
-        <svg
-          v-else-if="type === 'pan'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        >
-          <line
-            x1="12"
-            y1="4"
-            x2="12"
-            y2="20"
-          />
-          <line
-            x1="4"
-            y1="12"
-            x2="20"
-            y2="12"
-          />
-          <polygon
-            points="12,4 9,8 15,8"
-            fill="currentColor"
-            stroke="none"
-          />
-          <polygon
-            points="12,20 9,16 15,16"
-            fill="currentColor"
-            stroke="none"
-          />
-          <polygon
-            points="4,12 8,9 8,15"
-            fill="currentColor"
-            stroke="none"
-          />
-          <polygon
-            points="20,12 16,9 16,15"
-            fill="currentColor"
-            stroke="none"
-          />
-        </svg>
-        <!-- Pencil -->
-        <svg
-          v-else-if="type === 'pencil'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-          <path d="m15 5 4 4" />
-        </svg>
-        <!-- Line -->
-        <svg
-          v-else-if="type === 'line'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        >
-          <line
-            x1="5"
-            y1="19"
-            x2="19"
-            y2="5"
-          />
-        </svg>
-        <!-- Circle -->
-        <svg
-          v-else-if="type === 'circle'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <circle
-            cx="12"
-            cy="12"
-            r="9"
-          />
-        </svg>
-        <!-- Rect -->
-        <svg
-          v-else-if="type === 'rect'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        >
-          <rect
-            x="3"
-            y="3"
-            width="18"
-            height="18"
-            rx="2"
-          />
-        </svg>
-        <!-- Triangle -->
-        <svg
-          v-else-if="type === 'triangle'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        >
-          <polygon points="12,3 22,21 2,21" />
-        </svg>
-        <!-- Star -->
-        <svg
-          v-else-if="type === 'star'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        >
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
-        </svg>
-        <!-- Text -->
-        <svg
-          v-else-if="type === 'text'"
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="4 7 4 4 20 4 20 7" />
-          <line
-            x1="9"
-            y1="20"
-            x2="15"
-            y2="20"
-          />
-          <line
-            x1="12"
-            y1="4"
-            x2="12"
-            y2="20"
-          />
-        </svg>
-      </button>
-    </div>
+        <polyline points="18 15 12 9 6 15" />
+      </svg>
+    </button>
 
-    <div class="tool-group nav-group">
-      <button
-        :class="['tool-btn', { active: toolsStore.activeTool === 'zoom' }]"
-        :title="t('tool.zoom')"
-        @click="toolsStore.setTool('zoom')"
-      >
-        <svg
-          class="tool-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+    <!-- Scrollable tools container -->
+    <div
+      ref="toolsScrollRef"
+      class="tools-scroll"
+      @scroll="checkScroll"
+    >
+      <div class="tool-group">
+        <button
+          v-for="type in toolTypes"
+          :key="type"
+          :class="['tool-btn', { active: toolsStore.activeTool === type }]"
+          :title="t(`tool.${type}`)"
+          @click="toolsStore.setTool(type)"
         >
-          <circle
-            cx="11"
-            cy="11"
-            r="8"
-          />
-          <line
-            x1="21"
-            y1="21"
-            x2="16.65"
-            y2="16.65"
-          />
-          <line
-            x1="11"
-            y1="8"
-            x2="11"
-            y2="14"
-          />
-          <line
-            x1="8"
-            y1="11"
-            x2="14"
-            y2="11"
-          />
-        </svg>
-      </button>
+          <!-- Select: 镂空鼠标指针 -->
+          <svg
+            v-if="type === 'select'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4.5 3.5l5.5 15 2.5-6 6-2.5z" />
+          </svg>
+          <!-- Pan: 十字四方向箭头 -->
+          <svg
+            v-else-if="type === 'pan'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          >
+            <line
+              x1="12"
+              y1="4"
+              x2="12"
+              y2="20"
+            />
+            <line
+              x1="4"
+              y1="12"
+              x2="20"
+              y2="12"
+            />
+            <polygon
+              points="12,4 9,8 15,8"
+              fill="currentColor"
+              stroke="none"
+            />
+            <polygon
+              points="12,20 9,16 15,16"
+              fill="currentColor"
+              stroke="none"
+            />
+            <polygon
+              points="4,12 8,9 8,15"
+              fill="currentColor"
+              stroke="none"
+            />
+            <polygon
+              points="20,12 16,9 16,15"
+              fill="currentColor"
+              stroke="none"
+            />
+          </svg>
+          <!-- Pencil -->
+          <svg
+            v-else-if="type === 'pencil'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            <path d="m15 5 4 4" />
+          </svg>
+          <!-- Line -->
+          <svg
+            v-else-if="type === 'line'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          >
+            <line
+              x1="5"
+              y1="19"
+              x2="19"
+              y2="5"
+            />
+          </svg>
+          <!-- Circle -->
+          <svg
+            v-else-if="type === 'circle'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            />
+          </svg>
+          <!-- Rect -->
+          <svg
+            v-else-if="type === 'rect'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linejoin="round"
+          >
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="2"
+            />
+          </svg>
+          <!-- Triangle -->
+          <svg
+            v-else-if="type === 'triangle'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linejoin="round"
+          >
+            <polygon points="12,3 22,21 2,21" />
+          </svg>
+          <!-- Star -->
+          <svg
+            v-else-if="type === 'star'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linejoin="round"
+          >
+            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+          </svg>
+          <!-- Text -->
+          <svg
+            v-else-if="type === 'text'"
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="4 7 4 4 20 4 20 7" />
+            <line
+              x1="9"
+              y1="20"
+              x2="15"
+              y2="20"
+            />
+            <line
+              x1="12"
+              y1="4"
+              x2="12"
+              y2="20"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div class="tool-group nav-group">
+        <button
+          :class="['tool-btn', { active: toolsStore.activeTool === 'zoom' }]"
+          :title="t('tool.zoom')"
+          @click="toolsStore.setTool('zoom')"
+        >
+          <svg
+            class="tool-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle
+              cx="11"
+              cy="11"
+              r="8"
+            />
+            <line
+              x1="21"
+              y1="21"
+              x2="16.65"
+              y2="16.65"
+            />
+            <line
+              x1="11"
+              y1="8"
+              x2="11"
+              y2="14"
+            />
+            <line
+              x1="8"
+              y1="11"
+              x2="14"
+              y2="11"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
+    <!-- end tools-scroll -->
+
+    <!-- Scroll down button -->
+    <button
+      v-if="canScrollDown"
+      class="scroll-btn scroll-down"
+      @click="scrollDown"
+    >
+      <svg
+        class="scroll-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </button>
 
     <div class="spacer" />
 
@@ -683,6 +768,50 @@ function onBgClick() {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+/* Adaptive scrollable tools container */
+.tools-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-shrink: 1;
+  min-height: 0;
+}
+
+.tools-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-btn {
+  width: 40px;
+  height: 22px;
+  border: none;
+  border-radius: var(--wb-radius-sm);
+  background: transparent;
+  color: var(--wb-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--wb-transition);
+  flex-shrink: 0;
+}
+
+.scroll-btn:hover {
+  background: var(--wb-surface-hover);
+  color: var(--wb-text);
+}
+
+.scroll-icon {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
 }
 
 .tool-btn {

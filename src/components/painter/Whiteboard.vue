@@ -542,10 +542,9 @@ onUnmounted(() => {
           <polyline points="17 6 21 10 17 14" />
         </svg>
       </button>
-      <div class="tb-separator" />
       <button
+        v-if="canvasStore.selectedStrokeIds.size > 0"
         class="canvas-tb-btn"
-        :disabled="canvasStore.selectedStrokeIds.size === 0"
         :title="t('toolbar.bringToFront')"
         @click="canvasStore.moveSelectedUp()"
       >
@@ -563,8 +562,8 @@ onUnmounted(() => {
         </svg>
       </button>
       <button
+        v-if="canvasStore.selectedStrokeIds.size > 0"
         class="canvas-tb-btn"
-        :disabled="canvasStore.selectedStrokeIds.size === 0"
         :title="t('toolbar.sendToBack')"
         @click="canvasStore.moveSelectedDown()"
       >
@@ -581,10 +580,6 @@ onUnmounted(() => {
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
-      <div
-        v-if="canvasStore.selectedStrokeIds.size > 0"
-        class="tb-separator"
-      />
       <button
         v-if="canvasStore.selectedStrokeIds.size > 0"
         class="canvas-tb-btn canvas-tb-btn--danger"

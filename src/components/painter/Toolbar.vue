@@ -87,9 +87,9 @@ const displayFg = computed(() => {
   return canvasStore.foregroundColor;
 });
 
-// 多选且边框颜色不一致
+// 多选且边框颜色不一致（纯文本框时不显示混合态）
 const fgMixed = computed(() =>
-  hasSelection.value && canvasStore.selectedStrokeColor === null,
+  !allSelectedAreText.value && hasSelection.value && canvasStore.selectedStrokeColor === null,
 );
 
 // 背景色（填充色）：优先显示选中统一色，否则显示默认背景色
@@ -100,15 +100,24 @@ const displayBg = computed(() => {
   return canvasStore.backgroundColor;
 });
 
-// 多选且填充颜色不一致
+// 多选且填充颜色不一致（纯文本框时不显示混合态）
 const bgMixed = computed(() =>
-  hasSelection.value && canvasStore.selectedFillColor === null,
+  !allSelectedAreText.value && hasSelection.value && canvasStore.selectedFillColor === null,
 );
 
 // 文本框颜色
 const hasTextInSelection = computed(() =>
   canvasStore.selectedStrokes.some((s) => s.type === 'text'),
 );
+
+// 所有选中项都是文本框
+const allSelectedAreText = computed(() =>
+  hasSelection.value && canvasStore.selectedStrokes.every((s) => s.type === 'text'),
+);
+
+// 前景色/背景色按钮是否禁用（纯文本框时不参与）
+const fgDisabled = computed(() => allSelectedAreText.value);
+const bgDisabled = computed(() => allSelectedAreText.value);
 
 const displayTextColor = computed(() => {
   if (hasSelection.value && canvasStore.selectedTextColor !== null) {
@@ -127,11 +136,13 @@ function onTextColorClick() {
 }
 
 function onFgClick() {
+  if (fgDisabled.value) return;
   canvasStore.setColorSlot('foreground');
   canvasStore.toggleColorPalette();
 }
 
 function onBgClick() {
+  if (bgDisabled.value) return;
   canvasStore.setColorSlot('background');
   canvasStore.toggleColorPalette();
 }
@@ -504,6 +515,7 @@ function onBgClick() {
 
     <div class="color-section">
       <div
+        v-if="hasTextInSelection"
         class="color-indicator"
         :class="{ active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'textColor' }"
         :title="t('color.textColor')"
@@ -521,8 +533,18 @@ function onBgClick() {
             stroke-linejoin="round"
           >
             <polyline points="4 7 4 4 20 4 20 7" />
-            <line x1="9" y1="20" x2="15" y2="20" />
-            <line x1="12" y1="4" x2="12" y2="20" />
+            <line
+              x1="9"
+              y1="20"
+              x2="15"
+              y2="20"
+            />
+            <line
+              x1="12"
+              y1="4"
+              x2="12"
+              y2="20"
+            />
           </svg>
           <svg
             v-if="textColorMixed"
@@ -533,14 +555,27 @@ function onBgClick() {
             stroke-width="2"
             stroke-linecap="round"
           >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <line x1="12" y1="5" x2="12" y2="19" />
+            <line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            />
           </svg>
         </div>
       </div>
       <div
         class="color-indicator"
-        :class="{ active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'foreground' }"
+        :class="{
+          active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'foreground',
+          disabled: fgDisabled,
+        }"
         :title="t('color.foreground')"
         @click="onFgClick"
       >
@@ -575,7 +610,10 @@ function onBgClick() {
       </div>
       <div
         class="color-indicator"
-        :class="{ active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'background' }"
+        :class="{
+          active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'background',
+          disabled: bgDisabled,
+        }"
         :title="t('color.background')"
         @click="onBgClick"
       >
@@ -862,6 +900,12 @@ function onBgClick() {
 .color-indicator.active {
   border-color: var(--wb-accent);
   background: var(--wb-accent-light);
+}
+
+.color-indicator.disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
 }
 
 .color-swatch {

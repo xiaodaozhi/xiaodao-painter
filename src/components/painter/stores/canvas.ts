@@ -149,18 +149,18 @@ export const useCanvasStore = defineStore('canvas', () => {
     return strokes.value.filter((s) => selectedStrokeIds.value.has(s.id));
   });
 
-  // 选中图形的统一边框颜色：全部一致时返回颜色，不一致返回 null
+  // 选中图形的统一边框颜色：排除文本框，全部一致时返回颜色，不一致返回 null
   const selectedStrokeColor = computed<string | null>(() => {
-    const sel = selectedStrokes.value;
+    const sel = selectedStrokes.value.filter((s) => s.type !== 'text');
     if (sel.length === 0) return null;
     const first = sel[0]!.strokeColor;
     return sel.every((s) => s.strokeColor === first) ? first : null;
   });
 
-  // 选中图形的统一填充颜色：排除直线/铅笔，全部一致返回颜色，不一致返回 null
+  // 选中图形的统一填充颜色：排除直线/铅笔/文本框，全部一致返回颜色，不一致返回 null
   const selectedFillColor = computed<string | null>(() => {
     const fills = selectedStrokes.value
-      .filter((s) => s.type !== 'line' && s.type !== 'pencil');
+      .filter((s) => s.type !== 'line' && s.type !== 'pencil' && s.type !== 'text');
     if (fills.length === 0) return null;
     const first = fills[0]!.fillColor;
     return fills.every((s) => s.fillColor === first) ? first : null;
@@ -342,17 +342,19 @@ export const useCanvasStore = defineStore('canvas', () => {
   }
 
   function setColor(color: string) {
-    // 应用于所有选中的笔画
+    // 应用于所有选中的笔画（文本框只响应 textColor 设置）
     if (selectedStrokeIds.value.size > 0) {
       pushUndo();
       for (const id of selectedStrokeIds.value) {
+        const stroke = strokes.value.find((s) => s.id === id);
         if (activeColorSlot.value === 'foreground') {
-          if (color === 'transparent') return;
+          if (color === 'transparent' || stroke?.type === 'text') continue;
           updateStroke(id, { strokeColor: color });
         } else if (activeColorSlot.value === 'textColor') {
           if (color === 'transparent') return;
           updateStroke(id, { textColor: color });
         } else {
+          if (stroke?.type === 'text') continue;
           updateStroke(id, { fillColor: color });
         }
       }

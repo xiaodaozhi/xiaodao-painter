@@ -247,16 +247,17 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
 
     // Text tool: defer creation until pointer up
     if (toolsStore.activeTool === 'text') {
-      // Check if clicking on an existing text stroke
-      const hit = [...canvasStore.strokes].reverse().find((s) => hitTestStroke(pt, s));
-      if (hit && hit.type === 'text') {
-        // Click on existing text → enter edit mode
-        canvasStore.hoveredTextId = null;
-        saveCurrentTextEdit();
-        // Push undo for editing existing text
-        canvasStore.pushUndo();
-        canvasStore.editingTextId = hit.id;
-        return;
+      // Skip click-on-existing-text when another text is being edited
+      if (!canvasStore.editingTextId) {
+        const hit = [...canvasStore.strokes].reverse().find((s) => hitTestStroke(pt, s));
+        if (hit && hit.type === 'text') {
+          // Click on existing text → enter edit mode
+          canvasStore.hoveredTextId = null;
+          saveCurrentTextEdit();
+          canvasStore.pushUndo();
+          canvasStore.editingTextId = hit.id;
+          return;
+        }
       }
       textClickPending.value = true;
       startPoint.value = pt;
@@ -308,8 +309,8 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
   function handlePointerMove(clientX: number, clientY: number) {
     const pt = pointerDown(clientX, clientY);
 
-    // Text tool: hover detection for existing text strokes
-    if (toolsStore.activeTool === 'text' && !isDrawing.value) {
+    // Text tool: hover detection for existing text strokes (skip when editing)
+    if (toolsStore.activeTool === 'text' && !isDrawing.value && !canvasStore.editingTextId) {
       const hit = [...canvasStore.strokes].reverse().find((s) => hitTestStroke(pt, s));
       canvasStore.hoveredTextId = (hit && hit.type === 'text') ? hit.id : null;
     } else if (!isDrawing.value) {

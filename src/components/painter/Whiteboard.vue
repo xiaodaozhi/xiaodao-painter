@@ -254,26 +254,46 @@ function setTextEditRef(strokeId: string) {
   return (el: any) => {
     if (el) {
       textEditRefs.value.set(strokeId, el as HTMLDivElement);
-      // Measure auto-width text elements once DOM renders
+      // Measure text elements once DOM renders
       const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
-      if (stroke && stroke.textAutoWidth) {
-        nextTick(() => measureTextElement(strokeId, el as HTMLDivElement));
-      }
+      if (!stroke) return;
+      nextTick(() => {
+        if (stroke.textAutoWidth) {
+          applyAutoWidth(strokeId, el as HTMLDivElement);
+        } else {
+          clampTextMinSize(strokeId, el as HTMLDivElement);
+        }
+      });
     } else {
       textEditRefs.value.delete(strokeId);
     }
   };
 }
 
-function measureTextElement(strokeId: string, el: HTMLDivElement) {
+function applyAutoWidth(strokeId: string, el: HTMLDivElement) {
   const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
   if (!stroke || !stroke.textAutoWidth) return;
   const bbox = el.getBoundingClientRect();
   const w = Math.max(bbox.width / canvasStore.zoomLevel, 0);
   const h = Math.max(bbox.height / canvasStore.zoomLevel, 0);
-  // Only update if values actually changed to avoid infinite re-render loop
   if (Math.abs(stroke.width - w) < 0.5 && Math.abs(stroke.height - h) < 0.5) return;
   canvasStore.updateStroke(strokeId, { width: w, height: h });
+}
+
+function clampTextMinSize(strokeId: string, el: HTMLDivElement) {
+  const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
+  if (!stroke || stroke.textAutoWidth) return;
+  const fontSize = stroke.fontSize ?? DEFAULT_FONT_SIZE;
+  const bbox = el.getBoundingClientRect();
+  const contentH = bbox.height / canvasStore.zoomLevel;
+  let newW = stroke.width;
+  let newH = stroke.height;
+  let changed = false;
+  if (newW < fontSize) { newW = fontSize; changed = true; }
+  if (newH < contentH) { newH = contentH; changed = true; }
+  if (changed) {
+    canvasStore.updateStroke(strokeId, { width: newW, height: newH });
+  }
 }
 
 onMounted(() => {

@@ -49,6 +49,15 @@ const isZoomActive = computed(() => toolsStore.activeTool === 'zoom');
 // Text editing refs
 const textEditRefs = ref<Map<string, HTMLDivElement | null>>(new Map());
 
+// Computed bounds for hovered text stroke
+const hoveredTextBounds = computed(() => {
+  const id = canvasStore.hoveredTextId;
+  if (!id) return null;
+  const s = canvasStore.strokes.find((st) => st.id === id);
+  if (!s) return null;
+  return canvasStore.getStrokeDisplayBounds(s);
+});
+
 // Check if single text stroke is selected
 const singleSelectedText = computed(() => {
   const sel = canvasStore.selectedStrokes;
@@ -245,10 +254,26 @@ function setTextEditRef(strokeId: string) {
   return (el: any) => {
     if (el) {
       textEditRefs.value.set(strokeId, el as HTMLDivElement);
+      // Measure auto-width text elements once DOM renders
+      const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
+      if (stroke && stroke.textAutoWidth) {
+        nextTick(() => measureTextElement(strokeId, el as HTMLDivElement));
+      }
     } else {
       textEditRefs.value.delete(strokeId);
     }
   };
+}
+
+function measureTextElement(strokeId: string, el: HTMLDivElement) {
+  const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
+  if (!stroke || !stroke.textAutoWidth) return;
+  const bbox = el.getBoundingClientRect();
+  const w = Math.max(bbox.width / canvasStore.zoomLevel, 0);
+  const h = Math.max(bbox.height / canvasStore.zoomLevel, 0);
+  // Only update if values actually changed to avoid infinite re-render loop
+  if (Math.abs(stroke.width - w) < 0.5 && Math.abs(stroke.height - h) < 0.5) return;
+  canvasStore.updateStroke(strokeId, { width: w, height: h });
 }
 
 onMounted(() => {
@@ -450,11 +475,11 @@ onUnmounted(() => {
 
         <!-- Text tool hover outline -->
         <rect
-          v-if="canvasStore.hoveredTextId"
-          :x="(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.x ?? 0) - 4"
-          :y="(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.y ?? 0) - 4"
-          :width="Math.max(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.width ?? 0, 40) + 8"
-          :height="Math.max(canvasStore.strokes.find(s => s.id === canvasStore.hoveredTextId)?.height ?? 0, 20) + 8"
+          v-if="hoveredTextBounds"
+          :x="hoveredTextBounds.x - 4"
+          :y="hoveredTextBounds.y - 4"
+          :width="hoveredTextBounds.width + 8"
+          :height="hoveredTextBounds.height + 8"
           fill="none"
           stroke="#6366f1"
           stroke-width="1"

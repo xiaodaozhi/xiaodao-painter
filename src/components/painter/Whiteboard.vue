@@ -288,8 +288,14 @@ function clampTextMinSize(strokeId: string, el: HTMLDivElement) {
   let newW = stroke.width;
   let newH = stroke.height;
   let changed = false;
-  if (newW < contentW) { newW = contentW; changed = true; }
-  if (newH < contentH) { newH = contentH; changed = true; }
+  if (newW < contentW) {
+    newW = contentW;
+    changed = true;
+  }
+  if (newH < contentH) {
+    newH = contentH;
+    changed = true;
+  }
   if (changed) {
     canvasStore.updateStroke(strokeId, { width: newW, height: newH });
   }
@@ -425,7 +431,10 @@ onUnmounted(() => {
         />
 
         <g class="strokes-layer">
-          <template v-for="stroke in canvasStore.strokes" :key="stroke.id">
+          <template
+            v-for="stroke in canvasStore.strokes"
+            :key="stroke.id"
+          >
             <!-- Text strokes rendered as foreignObject -->
             <foreignObject
               v-if="stroke.type === 'text'"
@@ -436,8 +445,8 @@ onUnmounted(() => {
               :style="{ overflow: 'visible', pointerEvents: 'none' }"
             >
               <div
-                xmlns="http://www.w3.org/1999/xhtml"
                 :ref="setTextEditRef(stroke.id)"
+                xmlns="http://www.w3.org/1999/xhtml"
                 :contenteditable="canvasStore.editingTextId === stroke.id"
                 :style="{
                   fontSize: (stroke.fontSize ?? 16) + 'px',
@@ -694,8 +703,21 @@ onUnmounted(() => {
         class="font-size-btn"
         @mousedown.stop.prevent="changeFontSize(-1)"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="5" y1="12" x2="19" y2="12" />
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
         </svg>
       </button>
       <span class="font-size-value">{{ singleSelectedText.fontSize ?? DEFAULT_FONT_SIZE }}</span>
@@ -703,9 +725,27 @@ onUnmounted(() => {
         class="font-size-btn"
         @mousedown.stop.prevent="changeFontSize(1)"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <line
+            x1="12"
+            y1="5"
+            x2="12"
+            y2="19"
+          />
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
         </svg>
       </button>
       <div class="text-align-separator" />
@@ -714,11 +754,39 @@ onUnmounted(() => {
         title="左对齐"
         @mousedown.stop.prevent="setTextAlign('left')"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="10" x2="17" y2="10" />
-          <line x1="3" y1="14" x2="21" y2="14" />
-          <line x1="3" y1="18" x2="15" y2="18" />
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <line
+            x1="3"
+            y1="6"
+            x2="21"
+            y2="6"
+          />
+          <line
+            x1="3"
+            y1="10"
+            x2="17"
+            y2="10"
+          />
+          <line
+            x1="3"
+            y1="14"
+            x2="21"
+            y2="14"
+          />
+          <line
+            x1="3"
+            y1="18"
+            x2="15"
+            y2="18"
+          />
         </svg>
       </button>
       <button
@@ -726,11 +794,39 @@ onUnmounted(() => {
         title="居中"
         @mousedown.stop.prevent="setTextAlign('center')"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="5" y1="10" x2="19" y2="10" />
-          <line x1="3" y1="14" x2="21" y2="14" />
-          <line x1="7" y1="18" x2="17" y2="18" />
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <line
+            x1="3"
+            y1="6"
+            x2="21"
+            y2="6"
+          />
+          <line
+            x1="5"
+            y1="10"
+            x2="19"
+            y2="10"
+          />
+          <line
+            x1="3"
+            y1="14"
+            x2="21"
+            y2="14"
+          />
+          <line
+            x1="7"
+            y1="18"
+            x2="17"
+            y2="18"
+          />
         </svg>
       </button>
       <button
@@ -738,11 +834,39 @@ onUnmounted(() => {
         title="右对齐"
         @mousedown.stop.prevent="setTextAlign('right')"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="7" y1="10" x2="21" y2="10" />
-          <line x1="3" y1="14" x2="21" y2="14" />
-          <line x1="9" y1="18" x2="21" y2="18" />
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <line
+            x1="3"
+            y1="6"
+            x2="21"
+            y2="6"
+          />
+          <line
+            x1="7"
+            y1="10"
+            x2="21"
+            y2="10"
+          />
+          <line
+            x1="3"
+            y1="14"
+            x2="21"
+            y2="14"
+          />
+          <line
+            x1="9"
+            y1="18"
+            x2="21"
+            y2="18"
+          />
         </svg>
       </button>
     </div>

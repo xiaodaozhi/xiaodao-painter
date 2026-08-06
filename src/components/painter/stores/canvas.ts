@@ -393,17 +393,19 @@ export const useCanvasStore = defineStore('canvas', () => {
       strokeColor: foregroundColor.value,
       fillColor: type === 'pencil' || type === 'line' ? 'none' : backgroundColor.value,
       strokeWidth: strokeWidth.value,
-      ...(type === 'text' ? {
-        text: '',
-        fontSize: DEFAULT_FONT_SIZE,
-        textAlign: 'left' as const,
-        textColor: foregroundColor.value,
-        textAutoWidth: true,
-        fillColor: 'transparent',
-        strokeColor: 'transparent',
-        width: 0,
-        height: 0,
-      } : {}),
+      ...(type === 'text'
+        ? {
+            text: '',
+            fontSize: DEFAULT_FONT_SIZE,
+            textAlign: 'left' as const,
+            textColor: foregroundColor.value,
+            textAutoWidth: true,
+            fillColor: 'transparent',
+            strokeColor: 'transparent',
+            width: 0,
+            height: 0,
+          }
+        : {}),
     };
   }
 

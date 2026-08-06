@@ -14,9 +14,24 @@ const toolsStore = useToolsStore();
 const { t } = useI18n();
 const wrapperRef = ref<HTMLElement | null>(null);
 
-const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize, commitTextEdit, cancelTextEdit, startEditText } = useDrawing(
+const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize, commitTextEdit, cancelTextEdit, startEditText, saveCurrentTextEdit, setTextContentGetter } = useDrawing(
   wrapperRef as Ref<HTMLElement | null>,
 );
+
+// Provide a getter so the composable can read text content from the DOM
+setTextContentGetter(() => {
+  const id = canvasStore.editingTextId;
+  if (!id) return null;
+  const el = textEditRefs.value.get(id);
+  return el ? el.innerText : null;
+});
+
+// When switching away from text tool, auto-save the current text edit
+watch(() => toolsStore.activeTool, (newTool) => {
+  if (newTool !== 'text') {
+    saveCurrentTextEdit();
+  }
+});
 
 const cursorStyle = computed(() => {
   if (isResizing.value) return resizeCursor.value;

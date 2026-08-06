@@ -38,6 +38,36 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
   // Text tool pending click state
   const textClickPending = ref(false);
 
+  // Callback to read text content from DOM (set by Whiteboard.vue)
+  let textContentGetter: (() => string | null) | null = null;
+
+  function setTextContentGetter(getter: () => string | null) {
+    textContentGetter = getter;
+  }
+
+  /** Save the current editing text to the stroke without switching tools */
+  function saveCurrentTextEdit() {
+    const id = canvasStore.editingTextId;
+    if (!id) return;
+    const stroke = canvasStore.strokes.find((s) => s.id === id);
+    if (!stroke) return;
+
+    const text = textContentGetter?.() ?? null;
+    if (text === null) return; // Can't read from DOM, skip
+
+    if (!text.trim()) {
+      // Empty text: remove stroke and pop its creation undo entry
+      canvasStore.strokes = canvasStore.strokes.filter((s) => s.id !== id);
+      if (canvasStore.undoStack.length > 0) {
+        canvasStore.undoStack.pop();
+      }
+    } else {
+      // Non-empty text: save to stroke (no undo push — creation is already recorded)
+      canvasStore.updateStroke(id, { text });
+    }
+    canvasStore.editingTextId = null;
+  }
+
   function handlePanMove(event: MouseEvent) {
     if (!isPanning.value) return;
     const dx = event.clientX - panStartScreenX.value;
@@ -183,6 +213,12 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
 
   function handlePointerDown(clientX: number, clientY: number, mouseEvent?: MouseEvent) {
     const pt = pointerDown(clientX, clientY);
+
+    // If a text edit is active and user clicks the canvas with a non-text tool,
+    // auto-save the current text edit first
+    if (canvasStore.editingTextId && toolsStore.activeTool !== 'text') {
+      saveCurrentTextEdit();
+    }
 
     // Pan tool
     if (toolsStore.activeTool === 'pan') {
@@ -330,6 +366,8 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
     if (toolsStore.activeTool === 'text') {
       if (textClickPending.value) {
         textClickPending.value = false;
+        // Auto-save any previous text edit before creating a new one
+        saveCurrentTextEdit();
         const stroke = canvasStore.buildStroke('text', startPoint.value.x, startPoint.value.y, 0, 0, []);
         canvasStore.addStroke(stroke);
         canvasStore.editingTextId = stroke.id;
@@ -695,5 +733,7 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
     commitTextEdit,
     cancelTextEdit,
     startEditText,
+    saveCurrentTextEdit,
+    setTextContentGetter,
   };
 }

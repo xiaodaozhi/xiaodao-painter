@@ -504,17 +504,26 @@ function onBgClick() {
 
     <div class="color-section">
       <div
-        v-if="hasTextInSelection"
         class="color-indicator"
         :class="{ active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'textColor' }"
         :title="t('color.textColor')"
         @click="onTextColorClick"
       >
-        <div
-          class="color-swatch text-color"
-          :class="{ mixed: textColorMixed }"
-          :style="{ background: textColorMixed ? 'none' : displayTextColor }"
-        >
+        <div class="color-swatch text-color-swatch">
+          <svg
+            class="text-color-icon"
+            :style="{ color: textColorMixed ? 'var(--wb-text-secondary)' : displayTextColor }"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="4 7 4 4 20 4 20 7" />
+            <line x1="9" y1="20" x2="15" y2="20" />
+            <line x1="12" y1="4" x2="12" y2="20" />
+          </svg>
           <svg
             v-if="textColorMixed"
             class="mixed-icon"
@@ -524,24 +533,9 @@ function onBgClick() {
             stroke-width="2"
             stroke-linecap="round"
           >
-            <line
-              x1="5"
-              y1="12"
-              x2="19"
-              y2="12"
-            />
-            <line
-              x1="12"
-              y1="5"
-              x2="12"
-              y2="19"
-            />
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <line x1="12" y1="5" x2="12" y2="19" />
           </svg>
-          <!-- T icon for text color -->
-          <span
-            v-else
-            class="text-color-t"
-          >T</span>
         </div>
       </div>
       <div
@@ -901,17 +895,17 @@ function onBgClick() {
   pointer-events: none;
 }
 
-.text-color-t {
-  font-size: 16px;
-  font-weight: 700;
-  color: inherit;
-  pointer-events: none;
-  line-height: 1;
-}
-
-.text-color {
+.text-color-swatch {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.text-color-icon {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  transition: color 0.15s ease;
 }
 </style>

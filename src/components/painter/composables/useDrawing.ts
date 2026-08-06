@@ -247,8 +247,15 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
 
     // Text tool: defer creation until pointer up
     if (toolsStore.activeTool === 'text') {
-      // Skip click-on-existing-text when another text is being edited
-      if (!canvasStore.editingTextId) {
+      const editingId = canvasStore.editingTextId;
+      if (editingId) {
+        // If currently editing, check if click is within the editing text box
+        const editingStroke = canvasStore.strokes.find((s) => s.id === editingId);
+        if (editingStroke && hitTestStroke(pt, editingStroke)) {
+          // Click inside editing text → let the contenteditable handle it naturally
+          return;
+        }
+      } else {
         const hit = [...canvasStore.strokes].reverse().find((s) => hitTestStroke(pt, s));
         if (hit && hit.type === 'text') {
           // Click on existing text → enter edit mode

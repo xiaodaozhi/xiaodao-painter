@@ -191,8 +191,9 @@ function onBgClick() {
   <div class="toolbar">
     <!-- Scroll up button -->
     <button
-      v-if="canScrollUp"
+      v-if="canScrollUp || canScrollDown"
       class="scroll-btn scroll-up"
+      :disabled="!canScrollUp"
       @click="scrollUp"
     >
       <svg
@@ -440,8 +441,9 @@ function onBgClick() {
 
     <!-- Scroll down button -->
     <button
-      v-if="canScrollDown"
+      v-if="canScrollUp || canScrollDown"
       class="scroll-btn scroll-down"
+      :disabled="!canScrollDown"
       @click="scrollDown"
     >
       <svg
@@ -803,9 +805,14 @@ function onBgClick() {
   flex-shrink: 0;
 }
 
-.scroll-btn:hover {
+.scroll-btn:hover:not(:disabled) {
   background: var(--wb-surface-hover);
   color: var(--wb-text);
+}
+
+.scroll-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
 }
 
 .scroll-icon {

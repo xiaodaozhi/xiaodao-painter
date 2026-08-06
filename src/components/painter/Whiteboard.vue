@@ -608,12 +608,14 @@ onUnmounted(() => {
     <div
       v-if="isZoomActive || canvasStore.showZoomIndicator"
       class="zoom-control"
+      @touchstart.stop.prevent
     >
       <button
         v-if="isZoomActive"
         class="zoom-btn"
         :title="t('zoom.zoomOut')"
-        @click="zoomOut"
+        @mousedown.stop.prevent="zoomOut"
+        @touchstart.stop.prevent="zoomOut"
       >
         <svg
           width="16"
@@ -637,7 +639,8 @@ onUnmounted(() => {
         v-if="isZoomActive"
         class="zoom-btn"
         :title="t('zoom.zoomIn')"
-        @click="zoomIn"
+        @mousedown.stop.prevent="zoomIn"
+        @touchstart.stop.prevent="zoomIn"
       >
         <svg
           width="16"

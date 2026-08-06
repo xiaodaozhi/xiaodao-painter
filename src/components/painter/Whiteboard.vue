@@ -302,7 +302,15 @@ onUnmounted(() => {
     </div>
 
     <!-- 画布右上角工具栏 -->
-    <div class="canvas-toolbar">
+    <div
+      class="canvas-toolbar"
+      @mousedown.stop
+      @mouseup.stop
+      @click.stop
+      @touchstart.stop
+      @touchmove.stop
+      @touchend.stop
+    >
       <button
         class="canvas-tb-btn"
         :disabled="!canvasStore.canUndo"

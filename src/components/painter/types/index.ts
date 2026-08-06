@@ -1,4 +1,4 @@
-export type ToolType = 'select' | 'pencil' | 'line' | 'circle' | 'rect' | 'triangle' | 'star' | 'pan' | 'zoom';
+export type ToolType = 'select' | 'pencil' | 'line' | 'circle' | 'rect' | 'triangle' | 'star' | 'text' | 'pan' | 'zoom';
 
 export interface Point {
   x: number;
@@ -16,6 +16,11 @@ export interface Stroke {
   strokeColor: string;
   fillColor: string;
   strokeWidth: number;
+  text?: string;
+  fontSize?: number;
+  textAlign?: 'left' | 'center' | 'right';
+  textColor?: string;
+  textAutoWidth?: boolean;
 }
 
 export interface CanvasConfig {
@@ -33,4 +38,5 @@ export interface PainterData {
 export const DEFAULT_CANVAS_WIDTH = 800;
 export const DEFAULT_CANVAS_HEIGHT = 600;
 export const STROKE_WIDTH = 3;
+export const DEFAULT_FONT_SIZE = 16;
 export const HIT_THRESHOLD = 8;

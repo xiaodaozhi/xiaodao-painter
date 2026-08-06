@@ -56,7 +56,7 @@ function onTransparentClick() {
       >
         <div class="palette-header">
           <span class="palette-title">
-            {{ canvasStore.activeColorSlot === 'foreground' ? t('palette.stroke') : t('palette.fill') }}
+            {{ canvasStore.activeColorSlot === 'textColor' ? t('color.textColor') : (canvasStore.activeColorSlot === 'foreground' ? t('palette.stroke') : t('palette.fill')) }}
           </span>
           <div class="current-color">
             <div
@@ -66,9 +66,11 @@ function onTransparentClick() {
                 'current-transparent': canvasStore.activeColorSlot === 'background' && canvasStore.backgroundColor === 'transparent',
               }"
               :style="{
-                background: canvasStore.activeColorSlot === 'foreground'
-                  ? canvasStore.foregroundColor
-                  : (canvasStore.backgroundColor === 'transparent' ? 'none' : canvasStore.backgroundColor),
+                background: canvasStore.activeColorSlot === 'textColor'
+                  ? canvasStore.textColor
+                  : (canvasStore.activeColorSlot === 'foreground'
+                    ? canvasStore.foregroundColor
+                    : (canvasStore.backgroundColor === 'transparent' ? 'none' : canvasStore.backgroundColor)),
               }"
             >
               <svg
@@ -135,7 +137,7 @@ function onTransparentClick() {
           <div class="custom-color">
             <input
               type="color"
-              :value="canvasStore.activeColorSlot === 'foreground' ? canvasStore.foregroundColor : (canvasStore.backgroundColor === 'transparent' ? '#ffffff' : canvasStore.backgroundColor)"
+              :value="canvasStore.activeColorSlot === 'textColor' ? canvasStore.textColor : (canvasStore.activeColorSlot === 'foreground' ? canvasStore.foregroundColor : (canvasStore.backgroundColor === 'transparent' ? '#ffffff' : canvasStore.backgroundColor))"
               class="color-picker"
               @change="onCustomColorChange"
             >

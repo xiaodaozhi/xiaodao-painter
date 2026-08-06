@@ -13,6 +13,20 @@ export const useToolsStore = defineStore('tools', () => {
         canvasStore.clearSelection();
       }
     }
+    // If switching away from text tool, cancel any active text edit
+    if (activeTool.value === 'text' && tool !== 'text') {
+      const canvasStore = useCanvasStore();
+      if (canvasStore.editingTextId) {
+        const stroke = canvasStore.strokes.find((s) => s.id === canvasStore.editingTextId);
+        if (stroke && (!stroke.text || !stroke.text.trim())) {
+          canvasStore.strokes = canvasStore.strokes.filter((s) => s.id !== canvasStore.editingTextId);
+          if (canvasStore.undoStack.length > 0) {
+            canvasStore.undoStack.pop();
+          }
+        }
+        canvasStore.editingTextId = null;
+      }
+    }
     activeTool.value = tool;
   }
 

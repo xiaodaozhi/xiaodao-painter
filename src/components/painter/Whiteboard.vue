@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
 import type { Ref } from 'vue';
 import { useCanvasStore } from './stores/canvas';
 import { useToolsStore } from './stores/tools';
@@ -7,13 +7,14 @@ import { useDrawing } from './composables/useDrawing';
 import { useI18n } from './composables/useI18n';
 import StrokeRenderer from './StrokeRenderer.vue';
 import SelectionOverlay from './SelectionOverlay.vue';
+import { DEFAULT_FONT_SIZE } from './types';
 
 const canvasStore = useCanvasStore();
 const toolsStore = useToolsStore();
 const { t } = useI18n();
 const wrapperRef = ref<HTMLElement | null>(null);
 
-const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize } = useDrawing(
+const { isDrawing, previewStroke, onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd, updateModifiers, clearModifiers, isResizing, resizeCursor, startResize, commitTextEdit, cancelTextEdit, startEditText } = useDrawing(
   wrapperRef as Ref<HTMLElement | null>,
 );
 
@@ -21,10 +22,68 @@ const cursorStyle = computed(() => {
   if (isResizing.value) return resizeCursor.value;
   if (toolsStore.activeTool === 'pan') return 'grab';
   if (toolsStore.activeTool === 'zoom') return 'zoom-in';
+  if (toolsStore.activeTool === 'text') return 'text';
   return toolsStore.activeTool === 'select' ? 'default' : 'crosshair';
 });
 
 const isZoomActive = computed(() => toolsStore.activeTool === 'zoom');
+
+// Text editing refs
+const textEditRefs = ref<Map<string, HTMLDivElement | null>>(new Map());
+
+// Check if single text stroke is selected
+const singleSelectedText = computed(() => {
+  const sel = canvasStore.selectedStrokes;
+  return sel.length === 1 && sel[0]!.type === 'text' ? sel[0]! : null;
+});
+
+// Text editing keyboard handling
+function handleTextKeydown(e: KeyboardEvent) {
+  if (!canvasStore.editingTextId) return;
+
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = textEditRefs.value.get(canvasStore.editingTextId);
+    const text = el ? el.innerText : '';
+    commitTextEdit(canvasStore.editingTextId, text);
+    // Give time for the DOM to update before trying to focus
+    nextTick(() => {
+      // Auto-select to select tool is handled in commitTextEdit
+    });
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    e.stopPropagation();
+    cancelTextEdit(canvasStore.editingTextId);
+  }
+}
+
+// Watch for editing state changes to focus the editor
+watch(() => canvasStore.editingTextId, (newId) => {
+  if (newId) {
+    nextTick(() => {
+      const el = textEditRefs.value.get(newId);
+      if (el) {
+        el.focus();
+        // Place cursor at end
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
+    });
+  }
+});
+
+function handleTextDblClick(strokeId: string) {
+  // Only respond to double-click when text tool is NOT active
+  // (when text tool IS active, single click creates new text)
+  if (toolsStore.activeTool === 'text' || toolsStore.activeTool === 'select') {
+    startEditText(strokeId);
+  }
+}
 
 function zoomIn() {
   const el = wrapperRef.value?.parentElement;
@@ -40,6 +99,9 @@ function zoomOut() {
 
 function handleKeydown(e: KeyboardEvent) {
   const ctrl = e.ctrlKey || e.metaKey;
+
+  // Don't handle global shortcuts while editing text
+  if (canvasStore.editingTextId) return;
 
   if (isDrawing.value || isResizing.value) {
     updateModifiers(e);
@@ -105,7 +167,6 @@ function handleTouchMoveForPinch(event: TouchEvent) {
     const dist = getPinchDist(event.touches);
     const scale = dist / pinchStartDist.value;
     const newZoom = pinchStartZoom.value * scale;
-    // 获取 wrapper 的屏幕坐标，计算相对于 wrapper 的 pinch 中心点
     const wrapper = wrapperRef.value;
     if (wrapper) {
       const rect = wrapper.getBoundingClientRect();
@@ -139,8 +200,38 @@ function centerCanvas() {
   }
 }
 
+// Text formatting functions
+function changeFontSize(delta: number) {
+  const st = singleSelectedText.value;
+  if (!st) return;
+  const currentSize = st.fontSize ?? DEFAULT_FONT_SIZE;
+  const newSize = Math.max(8, Math.min(200, currentSize + delta));
+  canvasStore.pushUndo();
+  canvasStore.updateStroke(st.id, { fontSize: newSize });
+  canvasStore.dataVersion++;
+}
+
+function setTextAlign(align: 'left' | 'center' | 'right') {
+  const st = singleSelectedText.value;
+  if (!st) return;
+  canvasStore.pushUndo();
+  canvasStore.updateStroke(st.id, { textAlign: align });
+  canvasStore.dataVersion++;
+}
+
+function setTextEditRef(strokeId: string) {
+  return (el: any) => {
+    if (el) {
+      textEditRefs.value.set(strokeId, el as HTMLDivElement);
+    } else {
+      textEditRefs.value.delete(strokeId);
+    }
+  };
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
+  window.addEventListener('keydown', handleTextKeydown);
   window.addEventListener('keyup', handleKeyup);
   window.addEventListener('blur', handleBlur);
 
@@ -152,6 +243,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
+  window.removeEventListener('keydown', handleTextKeydown);
   window.removeEventListener('keyup', handleKeyup);
   window.removeEventListener('blur', handleBlur);
   centerObserver?.disconnect();
@@ -266,12 +358,46 @@ onUnmounted(() => {
         />
 
         <g class="strokes-layer">
-          <StrokeRenderer
-            v-for="stroke in canvasStore.strokes"
-            :key="stroke.id"
-            :stroke="stroke"
-            :is-selected="canvasStore.isSelected(stroke.id)"
-          />
+          <template v-for="stroke in canvasStore.strokes" :key="stroke.id">
+            <!-- Text strokes rendered as foreignObject -->
+            <foreignObject
+              v-if="stroke.type === 'text'"
+              :x="stroke.x"
+              :y="stroke.y"
+              :width="stroke.textAutoWidth ? 1 : (stroke.width || 1)"
+              :height="stroke.textAutoWidth ? 1 : (stroke.height || 1)"
+              :style="{ overflow: 'visible', pointerEvents: 'none' }"
+            >
+              <div
+                xmlns="http://www.w3.org/1999/xhtml"
+                :ref="setTextEditRef(stroke.id)"
+                :contenteditable="canvasStore.editingTextId === stroke.id"
+                :style="{
+                  fontSize: (stroke.fontSize ?? 16) + 'px',
+                  color: stroke.textColor ?? stroke.strokeColor,
+                  textAlign: stroke.textAlign ?? 'left',
+                  whiteSpace: stroke.textAutoWidth ? 'nowrap' : 'pre-wrap',
+                  wordBreak: stroke.textAutoWidth ? 'normal' : 'break-word',
+                  padding: '2px 4px',
+                  minHeight: (stroke.fontSize ?? 16) + 'px',
+                  outline: canvasStore.editingTextId === stroke.id ? '2px solid #6366f1' : 'none',
+                  cursor: canvasStore.editingTextId === stroke.id ? 'text' : 'default',
+                  userSelect: canvasStore.editingTextId === stroke.id ? 'text' : 'none',
+                  pointerEvents: canvasStore.editingTextId === stroke.id ? 'auto' : 'none',
+                  background: canvasStore.editingTextId === stroke.id ? 'rgba(255,255,255,0.9)' : 'transparent',
+                  borderRadius: '2px',
+                  display: 'inline-block',
+                  maxWidth: stroke.textAutoWidth ? 'none' : '100%',
+                }"
+                @dblclick.stop="handleTextDblClick(stroke.id)"
+              >{{ stroke.text || '' }}</div>
+            </foreignObject>
+            <StrokeRenderer
+              v-else
+              :stroke="stroke"
+              :is-selected="canvasStore.isSelected(stroke.id)"
+            />
+          </template>
         </g>
 
         <StrokeRenderer
@@ -477,6 +603,68 @@ onUnmounted(() => {
         </svg>
       </button>
     </div>
+
+    <!-- 文本格式化控制器：单选文本框时显示 -->
+    <div
+      v-if="singleSelectedText"
+      class="text-format-control"
+    >
+      <button
+        class="font-size-btn"
+        @mousedown.stop.prevent="changeFontSize(-1)"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+      <span class="font-size-value">{{ singleSelectedText.fontSize ?? DEFAULT_FONT_SIZE }}</span>
+      <button
+        class="font-size-btn"
+        @mousedown.stop.prevent="changeFontSize(1)"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+      <div class="text-align-separator" />
+      <button
+        :class="['text-align-btn', { active: singleSelectedText.textAlign === 'left' || !singleSelectedText.textAlign }]"
+        title="左对齐"
+        @mousedown.stop.prevent="setTextAlign('left')"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="10" x2="17" y2="10" />
+          <line x1="3" y1="14" x2="21" y2="14" />
+          <line x1="3" y1="18" x2="15" y2="18" />
+        </svg>
+      </button>
+      <button
+        :class="['text-align-btn', { active: singleSelectedText.textAlign === 'center' }]"
+        title="居中"
+        @mousedown.stop.prevent="setTextAlign('center')"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="5" y1="10" x2="19" y2="10" />
+          <line x1="3" y1="14" x2="21" y2="14" />
+          <line x1="7" y1="18" x2="17" y2="18" />
+        </svg>
+      </button>
+      <button
+        :class="['text-align-btn', { active: singleSelectedText.textAlign === 'right' }]"
+        title="右对齐"
+        @mousedown.stop.prevent="setTextAlign('right')"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="7" y1="10" x2="21" y2="10" />
+          <line x1="3" y1="14" x2="21" y2="14" />
+          <line x1="9" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -586,5 +774,80 @@ onUnmounted(() => {
   min-width: 40px;
   text-align: center;
   user-select: none;
+}
+
+/* Text formatting controls */
+.text-format-control {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: system-ui, sans-serif;
+  z-index: 100;
+}
+
+.font-size-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.font-size-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.font-size-value {
+  min-width: 28px;
+  text-align: center;
+  user-select: none;
+  font-size: 12px;
+}
+
+.text-align-separator {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 0 4px;
+}
+
+.text-align-btn {
+  width: 28px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.text-align-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.text-align-btn.active {
+  background: rgba(99, 102, 241, 0.6);
 }
 </style>

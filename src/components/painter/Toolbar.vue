@@ -10,7 +10,7 @@ const canvasStore = useCanvasStore();
 const { t } = useI18n();
 const rootEl = useRootEl();
 
-const toolTypes: ToolType[] = ['select', 'pan', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star'];
+const toolTypes: ToolType[] = ['select', 'pan', 'pencil', 'line', 'circle', 'rect', 'triangle', 'star', 'text'];
 
 const hasSelection = computed(() => canvasStore.selectedStrokeIds.size > 0);
 
@@ -104,6 +104,27 @@ const displayBg = computed(() => {
 const bgMixed = computed(() =>
   hasSelection.value && canvasStore.selectedFillColor === null,
 );
+
+// 文本框颜色
+const hasTextInSelection = computed(() =>
+  canvasStore.selectedStrokes.some((s) => s.type === 'text'),
+);
+
+const displayTextColor = computed(() => {
+  if (hasSelection.value && canvasStore.selectedTextColor !== null) {
+    return canvasStore.selectedTextColor;
+  }
+  return canvasStore.textColor;
+});
+
+const textColorMixed = computed(() =>
+  hasTextInSelection.value && canvasStore.selectedTextColor === null,
+);
+
+function onTextColorClick() {
+  canvasStore.setColorSlot('textColor');
+  canvasStore.toggleColorPalette();
+}
 
 function onFgClick() {
   canvasStore.setColorSlot('foreground');
@@ -269,6 +290,21 @@ function onBgClick() {
           stroke-linejoin="round"
         >
           <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+        </svg>
+        <!-- Text -->
+        <svg
+          v-else-if="type === 'text'"
+          class="tool-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="4 7 4 4 20 4 20 7" />
+          <line x1="9" y1="20" x2="15" y2="20" />
+          <line x1="12" y1="4" x2="12" y2="20" />
         </svg>
       </button>
     </div>
@@ -457,6 +493,34 @@ function onBgClick() {
     </div>
 
     <div class="color-section">
+      <div
+        v-if="hasTextInSelection"
+        class="color-indicator"
+        :class="{ active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'textColor' }"
+        :title="t('color.textColor')"
+        @click="onTextColorClick"
+      >
+        <div
+          class="color-swatch text-color"
+          :class="{ mixed: textColorMixed }"
+          :style="{ background: textColorMixed ? 'none' : displayTextColor }"
+        >
+          <svg
+            v-if="textColorMixed"
+            class="mixed-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <line x1="12" y1="5" x2="12" y2="19" />
+          </svg>
+          <!-- T icon for text color -->
+          <span v-else class="text-color-t">T</span>
+        </div>
+      </div>
       <div
         class="color-indicator"
         :class="{ active: canvasStore.showColorPalette && canvasStore.activeColorSlot === 'foreground' }"
@@ -812,5 +876,19 @@ function onBgClick() {
   height: 16px;
   color: var(--wb-text-secondary);
   pointer-events: none;
+}
+
+.text-color-t {
+  font-size: 16px;
+  font-weight: 700;
+  color: inherit;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.text-color {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

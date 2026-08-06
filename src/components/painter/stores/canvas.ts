@@ -1,19 +1,23 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Stroke } from '../types';
-import { STROKE_WIDTH, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from '../types';
+import { STROKE_WIDTH, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_FONT_SIZE } from '../types';
 
 export const useCanvasStore = defineStore('canvas', () => {
   const strokes = ref<Stroke[]>([]);
   const selectedStrokeIds = ref<Set<string>>(new Set());
   const foregroundColor = ref('#000000');
   const backgroundColor = ref('transparent');
-  const activeColorSlot = ref<'foreground' | 'background'>('foreground');
+  const activeColorSlot = ref<'foreground' | 'background' | 'textColor'>('foreground');
   const showColorPalette = ref(false);
   const strokeWidth = ref(STROKE_WIDTH);
   const canvasBackgroundColor = ref('transparent');
   const theme = ref<'light' | 'dark'>('light');
   const dataVersion = ref(0);
+
+  // Text tool state
+  const textColor = ref('#000000');
+  const editingTextId = ref<string | null>(null);
 
   // Canvas size and pan/zoom
   const canvasWidth = ref(DEFAULT_CANVAS_WIDTH);
@@ -159,6 +163,15 @@ export const useCanvasStore = defineStore('canvas', () => {
     if (fills.length === 0) return null;
     const first = fills[0]!.fillColor;
     return fills.every((s) => s.fillColor === first) ? first : null;
+  });
+
+  // 选中图形的统一文本颜色
+  const selectedTextColor = computed<string | null>(() => {
+    const texts = selectedStrokes.value
+      .filter((s) => s.type === 'text');
+    if (texts.length === 0) return null;
+    const first = texts[0]!.textColor ?? foregroundColor.value;
+    return texts.every((s) => (s.textColor ?? foregroundColor.value) === first) ? first : null;
   });
 
   // keep compatibility：单笔选中时返回该笔画
@@ -323,7 +336,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     return { x, y, width, height };
   }
 
-  function setColorSlot(slot: 'foreground' | 'background') {
+  function setColorSlot(slot: 'foreground' | 'background' | 'textColor') {
     activeColorSlot.value = slot;
   }
 
@@ -335,6 +348,9 @@ export const useCanvasStore = defineStore('canvas', () => {
         if (activeColorSlot.value === 'foreground') {
           if (color === 'transparent') return;
           updateStroke(id, { strokeColor: color });
+        } else if (activeColorSlot.value === 'textColor') {
+          if (color === 'transparent') return;
+          updateStroke(id, { textColor: color });
         } else {
           updateStroke(id, { fillColor: color });
         }
@@ -344,6 +360,9 @@ export const useCanvasStore = defineStore('canvas', () => {
       if (activeColorSlot.value === 'foreground') {
         if (color === 'transparent') return;
         foregroundColor.value = color;
+      } else if (activeColorSlot.value === 'textColor') {
+        if (color === 'transparent') return;
+        textColor.value = color;
       } else {
         backgroundColor.value = color;
       }
@@ -373,6 +392,17 @@ export const useCanvasStore = defineStore('canvas', () => {
       strokeColor: foregroundColor.value,
       fillColor: type === 'pencil' || type === 'line' ? 'none' : backgroundColor.value,
       strokeWidth: strokeWidth.value,
+      ...(type === 'text' ? {
+        text: '',
+        fontSize: DEFAULT_FONT_SIZE,
+        textAlign: 'left' as const,
+        textColor: foregroundColor.value,
+        textAutoWidth: true,
+        fillColor: 'transparent',
+        strokeColor: 'transparent',
+        width: 0,
+        height: 0,
+      } : {}),
     };
   }
 
@@ -387,6 +417,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     canvasBackgroundColor.value = 'transparent';
     theme.value = 'light';
     dataVersion.value = 0;
+    textColor.value = '#000000';
+    editingTextId.value = null;
     canvasWidth.value = DEFAULT_CANVAS_WIDTH;
     canvasHeight.value = DEFAULT_CANVAS_HEIGHT;
     panX.value = 0;
@@ -412,6 +444,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     selectedStrokes,
     selectedStrokeColor,
     selectedFillColor,
+    selectedTextColor,
     foregroundColor,
     backgroundColor,
     activeColorSlot,
@@ -436,6 +469,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     setCanvasBackgroundColor,
     canUndo,
     canRedo,
+    undoStack,
     pushUndo,
     undo,
     redo,
@@ -462,6 +496,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     getZoomPercent,
     dataVersion,
     theme,
+    textColor,
+    editingTextId,
     reset,
   };
 });

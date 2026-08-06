@@ -125,6 +125,10 @@ export function hitTestStroke(p: Point, stroke: Stroke): boolean {
       if (hasFill && pointInPolygon(p, verts)) return true;
       return pointInPolygon(p, verts);
     }
+    case 'text': {
+      return p.x >= x - HIT_THRESHOLD && p.x <= x + Math.max(width, HIT_THRESHOLD * 4) + HIT_THRESHOLD
+        && p.y >= y - HIT_THRESHOLD && p.y <= y + Math.max(height, HIT_THRESHOLD * 2) + HIT_THRESHOLD;
+    }
     default:
       return false;
   }

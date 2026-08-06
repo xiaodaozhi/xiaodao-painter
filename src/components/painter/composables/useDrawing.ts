@@ -35,6 +35,9 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
   const panStartPanX = ref(0);
   const panStartPanY = ref(0);
 
+  // Text tool pending click state
+  const textClickPending = ref(false);
+
   function handlePanMove(event: MouseEvent) {
     if (!isPanning.value) return;
     const dx = event.clientX - panStartScreenX.value;
@@ -110,7 +113,7 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
   const previewStroke = computed<Stroke | null>(() => {
     if (!isDrawing.value) return null;
     const type = toolsStore.activeTool;
-    if (type === 'select' || type === 'pan' || type === 'zoom') return null;
+    if (type === 'select' || type === 'pan' || type === 'zoom' || type === 'text') return null;
 
     const { x, y } = startPoint.value;
     const { x: cx, y: cy } = currentPoint.value;
@@ -161,10 +164,6 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
     const container = whiteboardRef.value;
     if (!container) return { x: 0, y: 0 };
     const rect = container.getBoundingClientRect();
-    // rect already reflects the CSS transform (pan + zoom).
-    // Dividing by zoomLevel un-scales to SVG coordinate space.
-    // The viewBox matches canvasWidth/canvasHeight 1:1 with the wrapper,
-    // so no additional viewBox mapping is needed.
     return {
       x: (clientX - rect.left) / canvasStore.zoomLevel,
       y: (clientY - rect.top) / canvasStore.zoomLevel,
@@ -207,6 +206,14 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
         const rect = wrapper.getBoundingClientRect();
         canvasStore.zoomAt(clientX - rect.left, clientY - rect.top, factor);
       }
+      return;
+    }
+
+    // Text tool: defer creation until pointer up
+    if (toolsStore.activeTool === 'text') {
+      textClickPending.value = true;
+      startPoint.value = pt;
+      // Don't start drawing — text is created on pointer up
       return;
     }
 
@@ -319,6 +326,17 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
     // Zoom tool — no action on mouseup
     if (toolsStore.activeTool === 'zoom') return;
 
+    // Text tool — create on pointer up
+    if (toolsStore.activeTool === 'text') {
+      if (textClickPending.value) {
+        textClickPending.value = false;
+        const stroke = canvasStore.buildStroke('text', startPoint.value.x, startPoint.value.y, 0, 0, []);
+        canvasStore.addStroke(stroke);
+        canvasStore.editingTextId = stroke.id;
+      }
+      return;
+    }
+
     if (!isDrawing.value) return;
     isDrawing.value = false;
 
@@ -401,6 +419,50 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
     const stroke = canvasStore.buildStroke(type, bbox.x, bbox.y, bbox.width, bbox.height, []);
     canvasStore.addStroke(stroke);
     toolsStore.setTool('select');
+  }
+
+  // Text editing functions
+  function commitTextEdit(strokeId: string, text: string) {
+    const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
+    if (!stroke) return;
+    if (!text.trim()) {
+      // Empty text: remove the stroke (also from undo stack to avoid empty history)
+      canvasStore.strokes = canvasStore.strokes.filter((s) => s.id !== strokeId);
+      // Remove the entry from undo stack that contains this stroke
+      if (canvasStore.undoStack.length > 0) {
+        canvasStore.undoStack.pop();
+      }
+    } else {
+      canvasStore.updateStroke(strokeId, { text });
+    }
+    canvasStore.editingTextId = null;
+    // If the text tool is active, switch to select tool
+    if (toolsStore.activeTool === 'text') {
+      toolsStore.setTool('select');
+    }
+  }
+
+  function cancelTextEdit(strokeId: string) {
+    const stroke = canvasStore.strokes.find((s) => s.id === strokeId);
+    if (!stroke) return;
+    if (!stroke.text || !stroke.text.trim()) {
+      // Empty text: remove the stroke from both strokes and undo stack
+      canvasStore.strokes = canvasStore.strokes.filter((s) => s.id !== strokeId);
+      if (canvasStore.undoStack.length > 0) {
+        canvasStore.undoStack.pop();
+      }
+    }
+    canvasStore.editingTextId = null;
+    if (toolsStore.activeTool === 'text') {
+      toolsStore.setTool('select');
+    }
+  }
+
+  // Double-click to edit existing text when text tool is active
+  function startEditText(strokeId: string) {
+    // Push undo before editing so undo restores previous text state
+    canvasStore.pushUndo();
+    canvasStore.editingTextId = strokeId;
   }
 
   function updateModifiers(e: KeyboardEvent) {
@@ -561,6 +623,17 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
       newBounds = applyModifiers(orig.type, anchor.x, anchor.y, pt.x, pt.y);
     }
 
+    // For text strokes, ensure minimum height and mark as fixed width
+    if (resizeOriginal.value?.type === 'text') {
+      if (newBounds.width < 1) newBounds.width = 1;
+      if (newBounds.height < 1) newBounds.height = 1;
+      canvasStore.updateStroke(resizeTargetId.value, {
+        ...newBounds,
+        textAutoWidth: false,
+      });
+      return;
+    }
+
     canvasStore.updateStroke(resizeTargetId.value, newBounds);
   }
 
@@ -619,5 +692,8 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
     isResizing,
     resizeCursor,
     startResize,
+    commitTextEdit,
+    cancelTextEdit,
+    startEditText,
   };
 }

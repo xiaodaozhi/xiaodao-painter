@@ -79,6 +79,9 @@ export function strokeToSvg(stroke: Stroke): SvgAttrs {
       const pts = verts.map((v) => `${v.x},${v.y}`).join(' ');
       return { tag: 'polygon', attrs: { ...common, points: pts } };
     }
+    case 'text':
+      // Text strokes are rendered separately with foreignObject in Whiteboard.vue
+      return { tag: 'g', attrs: {} };
     default:
       return { tag: 'g', attrs: {} };
   }

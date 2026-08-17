@@ -251,7 +251,7 @@ function setTextAlign(align: 'left' | 'center' | 'right') {
 }
 
 function setTextEditRef(strokeId: string) {
-  return (el: any) => {
+  return (el: unknown) => {
     if (el) {
       textEditRefs.value.set(strokeId, el as HTMLDivElement);
       nextTick(() => syncTextSizeFromDOM(strokeId, el as HTMLDivElement));

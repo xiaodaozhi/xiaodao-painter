@@ -22,17 +22,41 @@ Supports drawing tools, selection, resize, pan/zoom, undo/redo, clipboard, layer
 
 ## Installation
 
+Install the package from npm:
+
 ```bash
-npm install
+npm install xiaodao-painter
+```
+
+Or with pnpm / yarn:
+
+```bash
+pnpm add xiaodao-painter
+yarn add xiaodao-painter
 ```
 
 ## Usage
 
+First, make sure [Pinia](https://pinia.vuejs.org/) is registered in your Vue app (xiaodao-painter depends on Pinia internally):
+
+```ts
+// main.ts
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+
+const app = createApp(App)
+app.use(createPinia())
+app.mount('#app')
+```
+
+Then import and use the `Painter` component:
+
 ```vue
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import PainterApp from './components/painter/Home.vue'
-import type { PainterData } from './components/painter/types'
+import { Painter } from 'xiaodao-painter'
+import type { PainterData } from 'xiaodao-painter'
 
 const data = ref<PainterData>({
   strokes: [],
@@ -46,7 +70,7 @@ watch(data, (val) => {
 </script>
 
 <template>
-  <PainterApp
+  <Painter
     v-model="data"
     theme="light"
     locale="zh-CN"
@@ -54,10 +78,10 @@ watch(data, (val) => {
 </template>
 ```
 
-With explicit dimensions:
+With explicit dimensions and dark theme:
 
 ```html
-<PainterApp
+<Painter
   v-model="data"
   theme="dark"
   locale="en-US"
@@ -66,11 +90,25 @@ With explicit dimensions:
 />
 ```
 
+With a custom canvas background color:
+
+```html
+<Painter
+  v-model="data"
+  :modelValue="{
+    strokes: [],
+    canvasWidth: 800,
+    canvasHeight: 600,
+    canvasBackgroundColor: '#f5f5f5',
+  }"
+/>
+```
+
 ## Props
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `modelValue` | `PainterData` | `{ strokes: [], canvasWidth: 800, canvasHeight: 600 }` | Two-way bound drawing data |
+| `modelValue` | `PainterData` | `{ strokes: [], canvasWidth: 800, canvasHeight: 600 }` | Two-way bound drawing data (supports `canvasBackgroundColor`) |
 | `theme` | `'light' \| 'dark'` | `'light'` | UI theme |
 | `locale` | `string` | `'zh-CN'` | UI language (`'zh-CN'` or `'en-US'`) |
 | `width` | `string \| number` | `'100%'` | Component width (CSS value or px number) |
@@ -83,11 +121,19 @@ interface PainterData {
   strokes: Stroke[]
   canvasWidth: number
   canvasHeight: number
+  canvasBackgroundColor?: string
+}
+
+type ToolType = 'select' | 'pencil' | 'line' | 'circle' | 'rect' | 'triangle' | 'star' | 'text' | 'pan' | 'zoom'
+
+interface Point {
+  x: number
+  y: number
 }
 
 interface Stroke {
   id: string
-  type: 'select' | 'pencil' | 'line' | 'circle' | 'rect' | 'triangle' | 'star'
+  type: ToolType
   x: number
   y: number
   width: number
@@ -96,6 +142,11 @@ interface Stroke {
   strokeColor: string
   fillColor: string
   strokeWidth: number
+  text?: string
+  fontSize?: number
+  textAlign?: 'left' | 'center' | 'right'
+  textColor?: string
+  textAutoWidth?: boolean
 }
 ```
 

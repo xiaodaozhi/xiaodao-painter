@@ -5,11 +5,21 @@
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
 
+    // Library mode - override noEmit default from @vue/tsconfig
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist/types",
+    "outDir": "./dist/types",
+    "rootDir": "./src",
+    "skipLibCheck": false,
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["src/App.vue", "src/main.ts"]
 }

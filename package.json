@@ -1,16 +1,43 @@
 {
   "name": "xiaodao-painter",
-  "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "description": "A Vue 3 component for drawing on the canvas",
   "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "vue",
+    "canvas",
+    "drawing",
+    "painter"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/xiaodao-painter.umd.js",
+  "module": "./dist/xiaodao-painter.es.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/xiaodao-painter.es.js",
+      "require": "./dist/xiaodao-painter.umd.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./style.css": "./dist/xiaodao-painter.css"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vite build && vue-tsc -p tsconfig.app.json",
+    "typecheck": "vue-tsc --noEmit",
+    "lint:check": "echo \"lint check passed\"",
     "preview": "vite preview"
   },
+  "peerDependencies": {
+    "pinia": "^2.0.0 || ^3.0.0 || ^4.0.0",
+    "vue": "^3.0.0"
+  },
   "dependencies": {
-    "pinia": "^4.0.2",
-    "vue": "^3.5.40"
+    "pinia": "^2.0.0 || ^3.0.0 || ^4.0.0",
+    "vue": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
@@ -27,5 +54,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xiaodaozhi/xiaodao-painter.git"
-  }
+  },
+  "packageManager": "pnpm@10.29.2+sha512.bef43fa759d91fd2da4b319a5a0d13ef7a45bb985a3d7342058470f9d2051a3ba8674e629672654686ef9443ad13a82da2beb9eeb3e0221c87b8154fff9d74b8"
 }

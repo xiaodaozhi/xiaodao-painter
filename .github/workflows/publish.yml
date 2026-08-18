@@ -17,22 +17,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
-          cache: pnpm
+          cache: npm
 
-      - run: pnpm install --frozen-lockfile
+      - run: npm ci
 
-      - run: pnpm typecheck
-      - run: pnpm lint:check
+      - run: npm run typecheck
+      - run: npm run lint:check
 
-      - run: pnpm build
+      - run: npm run build
 
       - name: Configure npm auth
         run: npm config set //registry.npmjs.org/:_authToken $env:NPM_TOKEN
@@ -51,19 +47,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           registry-url: https://npm.pkg.github.com/
-          cache: pnpm
+          cache: npm
 
-      - run: pnpm install --frozen-lockfile
+      - run: npm ci
 
-      - run: pnpm build
+      - run: npm run build
 
       # GitHub Packages requires scoped names — temporarily rename
       - run: npm pkg set name=@xiaodaozhi/xiaodao-painter

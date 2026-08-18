@@ -1,7 +1,7 @@
 {
-  "name": "xiaodao-whiteboard",
+  "name": "xiaodao-painter",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -19,5 +19,13 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vue-tsc": "^3.3.8"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaodaozhi/xiaodao-painter.git"
   }
 }

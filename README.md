@@ -1,6 +1,6 @@
 # xiaodao-painter
 
-A self-contained, embeddable SVG whiteboard component for Vue 3. Built with TypeScript, Pinia, and Vite.
+A self-contained, embeddable SVG whiteboard component for Vue 3. Built with TypeScript and Vite. Zero extra dependencies beyond Vue 3.
 
 Supports drawing tools, selection, resize, pan/zoom, undo/redo, clipboard, layer ordering, color palettes, i18n, and light/dark themes — all with two-way data binding via `v-model`.
 
@@ -37,20 +37,7 @@ yarn add xiaodao-painter
 
 ## Usage
 
-First, make sure [Pinia](https://pinia.vuejs.org/) is registered in your Vue app (xiaodao-painter depends on Pinia internally):
-
-```ts
-// main.ts
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-
-const app = createApp(App)
-app.use(createPinia())
-app.mount('#app')
-```
-
-Then import and use the `Painter` component:
+Just import and use the `Painter` component. No additional plugins or global setup required — only Vue 3 is needed:
 
 ```vue
 <script setup lang="ts">

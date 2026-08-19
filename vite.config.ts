@@ -13,12 +13,11 @@ export default defineConfig({
       fileName: (format) => `xiaodao-painter.${format}.js`,
     },
     rollupOptions: {
-      external: ['vue', 'pinia'],
+      external: ['vue'],
       output: {
         exports: 'named',
         globals: {
           vue: 'Vue',
-          pinia: 'Pinia',
         },
       },
     },

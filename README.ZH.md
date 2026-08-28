@@ -31,7 +31,7 @@
 - **指针与触屏**：统一的 `useDrawing` 交互层同时处理鼠标与触摸路径，包括双指捏合缩放、拖动绘制/选择。
 - **缩放手柄**：图形 8 个、直线 2 个端点，拖动时实时预览。
 - **修饰键**：`Ctrl` = 锁定 1:1 比例（闭合图形）；`Shift` = 中心扩展 / 直线 45° 吸附。
-- **快捷键**：Delete、Esc、Ctrl/⌘+Z / Ctrl/⌘+Y / Ctrl/⌘+X / Ctrl/⌘+C / Ctrl/� (V。
+- **快捷键**：Delete、Esc、Ctrl/⌘+Z / Ctrl/⌘+Y / Ctrl/⌘+X / Ctrl/⌘+C / Ctrl/⌘+V。
 - **SVG 渲染**：每一条笔画都是真实的 SVG 元素（`<path>`、`<line>`、`<ellipse>`、`<rect>`、`<polygon>`、`foreignObject`），输出与分辨率无关、易于导出。
 
 ### 视觉与主题

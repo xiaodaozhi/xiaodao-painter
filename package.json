@@ -27,6 +27,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && vue-tsc -p tsconfig.app.json",
+    "build:demo": "vite build --config vite.demo.config.ts",
     "typecheck": "vue-tsc --noEmit",
     "lint:check": "eslint .",
     "preview": "vite preview"

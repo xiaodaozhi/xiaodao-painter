@@ -7,7 +7,7 @@ import globals from 'globals'
 export default [
   // 全局忽略
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'dist-demo/**', 'node_modules/**'],
   },
 
   // JS 推荐规则

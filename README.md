@@ -4,7 +4,6 @@
 
 [![Downloads](https://img.shields.io/npm/d18m/xiaodao-painter)](https://www.npmjs.com/package/xiaodao-painter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![npm](https://img.shields.io/npm/v/xiaodao-painter)](https://www.npmjs.com/package/xiaodao-painter)
 [![Vue 3](https://img.shields.io/badge/Vue-3.5+-42b883.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0+-3178C6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.0+-646CFF.svg)](https://vitejs.dev/)

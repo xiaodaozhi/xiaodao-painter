@@ -1,7 +1,8 @@
 # 小刀画板工具 (Xiaodao Painter)
 
-**中文** | [English](./README.md)
+**中文** | [English](./README.md) | [演示](https://painter.xdz.me)
 
+[![Downloads](https://img.shields.io/npm/d18m/xiaodao-painter)](https://www.npmjs.com/package/xiaodao-painter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/xiaodao-painter)](https://www.npmjs.com/package/xiaodao-painter)
 [![Vue 3](https://img.shields.io/badge/Vue-3.5+-42b883.svg)](https://vuejs.org/)

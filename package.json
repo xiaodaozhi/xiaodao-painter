@@ -1,15 +1,29 @@
 {
   "name": "xiaodao-painter",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "A Vue 3 component for drawing on the canvas",
   "type": "module",
   "license": "MIT",
   "homepage": "https://xiaodaozhi.com/xiaodao-painter.html",
   "keywords": [
     "vue",
+    "vue3",
+    "vue-component",
+    "whiteboard",
     "canvas",
-    "drawing",
-    "painter"
+    "draw",
+    "drawing-board",
+    "paint",
+    "sketch",
+    "annotation",
+    "手写板",
+    "白板",
+    "画布",
+    "画板",
+    "绘图",
+    "手绘",
+    "批注",
+    "电子白板"
   ],
   "files": [
     "dist"

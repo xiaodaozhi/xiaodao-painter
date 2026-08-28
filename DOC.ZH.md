@@ -1,4 +1,4 @@
-# 小刀画板架构设计文档
+# xiaodao-painter: 设计文档
 
 **中文** | [English](./DOC.md)
 

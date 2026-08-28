@@ -1,4 +1,4 @@
-# Xiaodao Painter: Design Document
+# xiaodao-painter: Design Document
 
 [中文](./DOC.ZH.md) | **English**
 

@@ -1,24 +1,22 @@
-# xiaodao-painter
+# Xiaodao Painter
 
-> A self-contained, embeddable SVG whiteboard / drawing component for Vue 3 — zero runtime dependencies beyond Vue 3 itself.
-
-**小刀画板** is a Vue 3 component library that drops a full-featured drawing surface into any app. It supports freehand pencil, shape primitives (line / rectangle / circle / triangle / star), text, selection & transform, pan & zoom, undo/redo, an internal clipboard, layer ordering, a color system, light/dark themes, and built-in i18n (Chinese / English) — all driven by a single `v-model`.
+A self-contained, embeddable SVG whiteboard / drawing component for Vue 3: zero runtime dependencies beyond Vue 3 itself. It drops a full-featured drawing surface into any app. It supports freehand pencil, shape primitives (line / rectangle / circle / triangle / star), text, selection & transform, pan & zoom, undo/redo, an internal clipboard, layer ordering, a color system, light/dark themes, and built-in i18n (Chinese / English): all driven by a single `v-model`.
 
 ![Preview](./img/preview.png)
 
 ## Features
 
-- **9 tools** — Select, Pan, Pencil, Line, Rectangle, Circle, Triangle, Star, Text (plus a dedicated Zoom tool).
-- **Selection & manipulation** — click-to-select, box-select, drag-move, 8-handle resize (Shift = symmetric / center-out), layer reorder (bring to front / send to back).
-- **Pan & zoom** — grab-drag panning, discrete zoom steps (10%–1000%) anchored at the cursor; pinch zoom on touch devices.
-- **Undo / redo** — full stroke-level undo/redo stacks.
-- **Internal clipboard** — cut, copy, paste within the whiteboard (paste offset +20 px).
-- **Color system** — stroke (foreground), fill (background), and text-color slots; per-selection color application and canvas background (solid or transparent with grid).
-- **Themes** — light and dark, with automatic foreground-color adjustment on theme switch.
-- **Internationalization** — Chinese (`zh-CN`) and English (`en-US`) built in.
-- **Keyboard shortcuts** — Delete, Escape, Ctrl/⌘+Z / Ctrl/⌘+Y / Ctrl/⌘+X / Ctrl/⌘+C / Ctrl/⌘+V.
-- **Modifier keys** — Ctrl = constrain 1:1 ratio, Shift = center-out expansion / 45° line snap.
-- **Two-way binding** — read and write the entire drawing via `v-model`.
+- **9 tools**: Select, Pan, Pencil, Line, Rectangle, Circle, Triangle, Star, Text (plus a dedicated Zoom tool).
+- **Selection & manipulation**: click-to-select, box-select, drag-move, 8-handle resize (Shift = symmetric / center-out), layer reorder (bring to front / send to back).
+- **Pan & zoom**: grab-drag panning, discrete zoom steps (10%–1000%) anchored at the cursor; pinch zoom on touch devices.
+- **Undo / redo**: full stroke-level undo/redo stacks.
+- **Internal clipboard**: cut, copy, paste within the whiteboard (paste offset +20 px).
+- **Color system**: stroke (foreground), fill (background), and text-color slots; per-selection color application and canvas background (solid or transparent with grid).
+- **Themes**: light and dark, with automatic foreground-color adjustment on theme switch.
+- **Internationalization**: Chinese (`zh-CN`) and English (`en-US`) built in.
+- **Keyboard shortcuts**: Delete, Escape, Ctrl/⌘+Z / Ctrl/⌘+Y / Ctrl/⌘+X / Ctrl/⌘+C / Ctrl/⌘+V.
+- **Modifier keys**: Ctrl = constrain 1:1 ratio, Shift = center-out expansion / 45° line snap.
+- **Two-way binding**: read and write the entire drawing via `v-model`.
 
 ## Installation
 
@@ -33,7 +31,7 @@ Peer dependency: `vue@^3.0.0`.
 
 ## Usage
 
-The component requires no plugin or global setup — only Vue 3.
+The component requires no plugin or global setup: only Vue 3.
 
 ```vue
 <script setup lang="ts">
@@ -218,7 +216,7 @@ src/
     utils/
       geometry.ts                  # Hit testing, star/triangle vertices, bounding box
       svg.ts                       # Stroke → SVG element conversion
-      i 18n.ts                     # zh-CN / en-US dictionaries + t()
+      i18n.ts                     # zh-CN / en-US dictionaries + t()
     types/index.ts                 # TypeScript types and default constants
 ```
 

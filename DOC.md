@@ -1,4 +1,4 @@
-# xiaodao-painter — Architecture Design Document
+# Xiaodao Painter Architecture Design Document
 
 This document explains how **xiaodao-painter** is structured internally: the module layout, the state model, the data-flow between the public API and the canvas, the rendering pipeline, the interaction engine, and the undo/redo design. It is meant to be read alongside the source under `src/components/painter/`.
 
@@ -50,9 +50,9 @@ flowchart TD
 
 The architecture is three conceptual layers:
 
-1. **Public API** — `index.ts` + `Painter.vue`. The only thing consumers import.
-2. **Stores** — two module-level reactive singletons (`canvas.ts`, `tools.ts`). They hold all mutable state and the mutation API. Because they are module-scoped, every `useCanvasStore()` call returns the same object.
-3. **View / Engine** — Vue components and the `useDrawing` composable that translate raw pointer events into store mutations, plus pure helper modules (`geometry`, `svg`, `i18n`).
+1. **Public API**: `index.ts` + `Painter.vue`. The only thing consumers import.
+2. **Stores**: two module-level reactive singletons (`canvas.ts`, `tools.ts`). They hold all mutable state and the mutation API. Because they are module-scoped, every `useCanvasStore()` call returns the same object.
+3. **View / Engine**: Vue components and the `useDrawing` composable that translate raw pointer events into store mutations, plus pure helper modules (`geometry`, `svg`, `i18n`).
 
 ## 3. State Management
 
@@ -71,7 +71,7 @@ export function useCanvasStore(): CanvasStore {
 }
 ```
 
-**Implication / limitation:** Because the store is a singleton, the current code assumes a single active instance per page. `Painter.vue` calls `canvasStore.reset()` and `toolsStore.reset()` on setup to guarantee a clean slate. Rendering two `<Painter>` instances on one page would share state — a known constraint to address before multi-instance support is needed.
+**Implication / limitation:** Because the store is a singleton, the current code assumes a single active instance per page. `Painter.vue` calls `canvasStore.reset()` and `toolsStore.reset()` on setup to guarantee a clean slate. Rendering two `<Painter>` instances on one page would share state: a known constraint to address before multi-instance support is needed.
 
 ### v-model Protocol
 

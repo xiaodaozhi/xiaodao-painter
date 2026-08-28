@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import PainterApp from './components/painter/Painter.vue';
 import type { PainterData } from './components/painter/types';
 import { DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT } from './components/painter/types';
@@ -12,6 +12,10 @@ const data = ref<PainterData>({
 
 watch(data, (newVal) => {
   console.log(newVal);
+});
+
+onMounted(() => {
+  document.title = '小刀画板工具 | Xiaodao Painter';
 });
 </script>
 

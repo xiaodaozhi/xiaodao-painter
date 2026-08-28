@@ -1,4 +1,4 @@
-# xiaodao-painter —— 组件架构设计文档
+# 小刀画布架构设计文档
 
 本文档说明 **xiaodao-painter** 的内部结构：模块划分、状态模型、公开 API 与画布之间的数据流、渲染管线、交互引擎，以及撤销/重做设计。建议配合 `src/components/painter/` 下的源码阅读。
 
@@ -50,9 +50,9 @@ flowchart TD
 
 架构分为三个概念层：
 
-1. **公开 API** —— `index.ts` 与 `Painter.vue`，用户唯一需要导入的部分。
-2. **Store** —— 两个模块级响应式单例（`canvas.ts`、`tools.ts`），持有全部可变状态与变更接口。由于是模块作用域，每次 `useCanvasStore()` 返回的都是同一个对象。
-3. **视图 / 引擎** —— 各 Vue 组件与 `useDrawing` 组合式函数，负责把原始指针事件转化为 store 变更，以及纯函数工具（`geometry`、`svg`、`i18n`）。
+1. **公开 API**：`index.ts` 与 `Painter.vue`，用户唯一需要导入的部分。
+2. **Store**：两个模块级响应式单例（`canvas.ts`、`tools.ts`），持有全部可变状态与变更接口。由于是模块作用域，每次 `useCanvasStore()` 返回的都是同一个对象。
+3. **视图 / 引擎**：各 Vue 组件与 `useDrawing` 组合式函数，负责把原始指针事件转化为 store 变更，以及纯函数工具（`geometry`、`svg`、`i18n`）。
 
 ## 3. 状态管理
 
@@ -71,7 +71,7 @@ export function useCanvasStore(): CanvasStore {
 }
 ```
 
-**隐含限制：** 因为 store 是单例，当前设计假设页面上只存在一个激活实例。`Painter.vue` 在 setup 时调用 `canvasStore.reset()` 与 `toolsStore.reset()` 以保证干净的初始状态。若要在同一页面渲染两个 `<Painter>`，会共享状态 —— 这是支持多实例前需要解决的前提。
+**隐含限制：** 因为 store 是单例，当前设计假设页面上只存在一个激活实例。`Painter.vue` 在 setup 时调用 `canvasStore.reset()` 与 `toolsStore.reset()` 以保证干净的初始状态。若要在同一页面渲染两个 `<Painter>`，会共享状态：这是支持多实例前需要解决的前提。
 
 ### v-model 协议
 

@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0+-3178C6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.0+-646CFF.svg)](https://vitejs.dev/)
 
-一个自包含、可嵌入的 Vue 3 SVG 画板 / 绘图组件：把功能完整的画布（自由铅笔、基础图形、文本、选择与变换、平移缩放、撤销重做、内部剪贴板、颜色系统、明/暗主题、内置中英文国际化）打包进单个组件，并通过一个 `v-model` 驱动。
+一个自包含、可嵌入的 Vue 3 绘图组件，以可序列化的 JSON 数据驱动、通过单个 `v-model` 读写：把功能完整的画布（自由铅笔、基础图形、文本、选择与变换、平移缩放、撤销重做、内部剪贴板、颜色系统、明/暗主题、内置中英文国际化）打包进单个组件。
 
 ![预览](./img/preview.png)
 

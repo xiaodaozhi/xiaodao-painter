@@ -2,7 +2,7 @@
 
 [中文](./DOC.ZH.md) | **English**
 
-A Vue 3 drawing component based on SVG. It renders freehand pencil strokes, lines, shapes (circle, rectangle, triangle, star), and editable text on a pan/zoomable canvas, with color/fill/text controls, undo/redo, and clipboard support. The whole drawing is serializable to a plain object, making save/load and external integration trivial.
+A Vue 3 drawing component. It renders freehand pencil strokes, lines, shapes (circle, rectangle, triangle, star), and editable text on a pan/zoomable canvas, with color/fill/text controls, undo/redo, and clipboard support. The whole drawing is serializable to a plain JSON object (`PainterData`), making save/load and external integration trivial.
 
 ---
 

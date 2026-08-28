@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0+-3178C6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.0+-646CFF.svg)](https://vitejs.dev/)
 
-A self-contained, embeddable **SVG drawing component** for Vue 3: a full-featured drawing surface (freehand pencil, shape primitives, text, selection & transform, pan & zoom, undo/redo, an internal clipboard, a color system, light/dark themes, and built-in i18n) packed into a single component, driven by one `v-model`.
+A self-contained, embeddable **drawing component** for Vue 3, JSON-backed and driven by one `v-model`: a full-featured drawing surface (freehand pencil, shape primitives, text, selection & transform, pan & zoom, undo/redo, an internal clipboard, a color system, light/dark themes, and built-in i18n) packed into a single component.
 
 ![Preview](./img/preview.png)
 

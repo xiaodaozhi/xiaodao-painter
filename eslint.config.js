@@ -53,7 +53,7 @@ export default [
   // 项目自定义规则
   {
     rules: {
-      // 代码风格 — 不强制，交给 Prettier 或个人偏好
+      // 代码风格 - 不强制，交给 Prettier 或个人偏好
       'vue/multi-word-component-names': 'off',
       'vue/max-attributes-per-line': 'off',
       '@typescript-eslint/no-explicit-any': 'off',

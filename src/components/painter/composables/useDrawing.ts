@@ -62,7 +62,7 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
         canvasStore.undoStack.pop();
       }
     } else {
-      // Non-empty text: save to stroke (no undo push — creation is already recorded)
+      // Non-empty text: save to stroke (no undo push - creation is already recorded)
       canvasStore.updateStroke(id, { text });
     }
     canvasStore.editingTextId = null;
@@ -234,7 +234,7 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
       return;
     }
 
-    // Zoom tool (mouse only — right-click to zoom out; touch uses pinch gesture handled separately)
+    // Zoom tool (mouse only - right-click to zoom out; touch uses pinch gesture handled separately)
     if (toolsStore.activeTool === 'zoom' && mouseEvent) {
       const factor = mouseEvent.button === 2 ? 0.8 : 1.25;
       const wrapper = whiteboardRef.value;
@@ -268,7 +268,7 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
       }
       textClickPending.value = true;
       startPoint.value = pt;
-      // Don't start drawing — text is created on pointer up
+      // Don't start drawing - text is created on pointer up
       return;
     }
 
@@ -386,10 +386,10 @@ export function useDrawing(whiteboardRef: Ref<HTMLElement | null>) {
   }
 
   function handlePointerUp(clientX: number, clientY: number) {
-    // Zoom tool — no action on mouseup
+    // Zoom tool - no action on mouseup
     if (toolsStore.activeTool === 'zoom') return;
 
-    // Text tool — create on pointer up
+    // Text tool - create on pointer up
     if (toolsStore.activeTool === 'text') {
       if (textClickPending.value) {
         textClickPending.value = false;

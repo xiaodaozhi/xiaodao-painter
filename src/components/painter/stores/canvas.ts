@@ -1,6 +1,7 @@
 import { ref, computed, reactive } from 'vue';
 import type { Stroke } from '../types';
 import { STROKE_WIDTH, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_FONT_SIZE } from '../types';
+import { generateUuid } from '../utils/idGenerator';
 
 const strokes = ref<Stroke[]>([]);
 const selectedStrokeIds = ref<Set<string>>(new Set());
@@ -355,7 +356,7 @@ function setColor(color: string) {
 }
 
 function createStrokeId(): string {
-  return crypto.randomUUID();
+  return generateUuid();
 }
 
 function buildStroke(
